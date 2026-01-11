@@ -24,7 +24,7 @@ body {
   font-family: Inter, Helvetica, Arial, sans-serif;
   font-size: 14px;
   color: #212121;
-  background-color: #f5f5f5;
+  background-color: #f1f2f1;
 }
 
 .app {
@@ -33,7 +33,7 @@ body {
 
 .app__main {
   padding-top: 48px; /* Height of header */
-  padding-left: 240px; /* Width of sidebar */
+  padding-left: 220px; /* Width of sidebar */
   min-height: 100vh;
   transition: padding-left 0.25s ease;
 }

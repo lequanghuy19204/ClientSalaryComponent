@@ -14,6 +14,8 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
+    "devextreme": "^25.2.3",
+    "devextreme-vue": "^25.2.3",
     "vue": "^3.5.26",
     "vue-router": "^4.6.4"
   },

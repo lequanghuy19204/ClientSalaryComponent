@@ -158,10 +158,29 @@
 }
 
 .icon-mi-plus-white {
-  background: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
-    no-repeat -220px 0;
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -220px 0px;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -220px 0px;
   width: 20px;
   height: 20px;
+  background-color: #fff !important;
+}
+
+.icon-down-white {
+  -webkit-mask: url('../icons/Icon1.svg') no-repeat -104px -7px;
+  mask: url('../icons/Icon1.svg') no-repeat -104px -7px;
+  width: 12px;
+  height: 6px;
+  background-color: #fff !important;
+}
+
+.icon-down {
+  -webkit-mask: url('../icons/Icon1.svg') no-repeat -104px -7px;
+  mask: url('../icons/Icon1.svg') no-repeat -104px -7px;
+  width: 12px;
+  height: 6px;
+  background-color: #666 !important;
 }
 
 .icon-mi-filter {
@@ -180,16 +199,16 @@
 
 .icon-mi-chevron-left {
   background: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
-    no-repeat -160px 0;
-  width: 16px;
-  height: 16px;
+    no-repeat -167px -5px;
+  width: 6px;
+  height: 10px;
 }
 
 .icon-mi-chevron-right {
   background: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
-    no-repeat -140px 0;
-  width: 16px;
-  height: 16px;
+    no-repeat -146px -5px;
+  width: 7px;
+  height: 10px;
 }
 
 .icon-mi-pin {
@@ -252,6 +271,16 @@
   mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
     no-repeat -120px -20px;
   background-color: #ff6161 !important;
+  width: 20px;
+  height: 20px;
+}
+
+.icon-mi-check-green {
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -120px -60px;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -120px -60px;
+  background-color: #34b057 !important;
   width: 20px;
   height: 20px;
 }
