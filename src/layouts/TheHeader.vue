@@ -151,13 +151,14 @@ export default {
   width: 32px;
   height: 32px;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 50%;
   margin-left: 12px;
   margin-right: 4px;
+  transition: background-color 0.2s ease;
 }
 
 .ms-header__app-menu:hover {
-  background-color: #f2f2f2;
+  background-color: #e5e5e5;
 }
 
 /* Logo */
@@ -254,13 +255,14 @@ export default {
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 4px;
+  border-radius: 50%;
   cursor: pointer;
   position: relative;
+  transition: background-color 0.2s ease;
 }
 
 .ms-header__icon-btn:hover {
-  background-color: #f2f2f2;
+  background-color: #e5e5e5;
 }
 
 /* Badge */
@@ -293,6 +295,12 @@ export default {
   width: 32px;
   height: 32px;
   cursor: pointer;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.ms-header__avatar-wrapper:hover {
+  background-color: #e5e5e5;
 }
 
 .ms-header__avatar-img {
