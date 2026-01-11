@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Icon Preview</title>
+  <link rel="stylesheet" href="icons.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 { margin-bottom: 20px; }
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 20px;
+    }
+    .icon-item {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+    .icon-display {
+      display: inline-block;
+      margin-bottom: 10px;
+      background-color: #333;
+    }
+    .icon-name {
+      font-size: 12px;
+      color: #666;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <h1>Icon Preview (<span id="count">0</span> icons)</h1>
+  <div class="icon-grid" id="iconGrid"></div>
+
+  <script>
+    fetch('icons.css')
+      .then(res => res.text())
+      .then(css => {
+        const iconClasses = css.match(/\.(icon-[a-zA-Z0-9_-]+)/g) || [];
+        const uniqueIcons = [...new Set(iconClasses.map(c => c.slice(1)))];
+        
+        document.getElementById('count').textContent = uniqueIcons.length;
+        const grid = document.getElementById('iconGrid');
+        
+        uniqueIcons.forEach(iconClass => {
+          grid.innerHTML += `
+            <div class="icon-item">
+              <div class="icon-display ${iconClass}"></div>
+              <div class="icon-name">.${iconClass}</div>
+            </div>
+          `;
+        });
+      });
+  </script>
+</body>
+</html>

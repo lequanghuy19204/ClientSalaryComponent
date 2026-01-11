@@ -130,16 +130,23 @@
 .icon-sidebar-zoom {
   background: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
     no-repeat -162px -779px;
-  transform: rotate(180deg);
   width: 16px;
   height: 16px;
 }
 
-.icon-sidebar-dropdown {
+.icon-sidebar-zoom-out {
   background: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
     no-repeat -162px -779px;
   width: 16px;
   height: 16px;
+  transform: rotate(180deg);
+}
+
+.icon-sidebar-dropdown {
+  background: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -186px -781px;
+  width: 8px;
+  height: 12px;
 }
 
 /* Container */
