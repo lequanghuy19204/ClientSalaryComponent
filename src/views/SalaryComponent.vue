@@ -55,12 +55,14 @@
           />
 
           <!-- Tất cả đơn vị -->
-          <MsSelect
-            v-model="selectedUnit"
-            :options="unitOptions"
+          <MsTree
+            v-model="selectedUnits"
+            :data-source="unitTreeData"
+            key-expr="id"
+            display-expr="name"
             placeholder="Tất cả đơn vị"
-            size="large"
-            class="filter-unit-select"
+            :max-selected-labels="1"
+            class="filter-unit-tree"
           />
 
           <!-- Filter Button -->
@@ -104,6 +106,7 @@ import BaseDataGrid from '@/components/bases/BaseDataGrid.vue'
 import MsButton from '@/components/bases/MsButton.vue'
 import MsInput from '@/components/bases/MsInput.vue'
 import MsSelect from '@/components/bases/MsSelect.vue'
+import MsTree from '@/components/bases/MsTree.vue'
 
 const router = useRouter()
 
@@ -111,7 +114,7 @@ const searchText = ref('')
 
 // Filter state
 const selectedStatus = ref(null)
-const selectedUnit = ref(null)
+const selectedUnits = ref([])
 
 const statusOptions = [
   { value: null, label: 'Tất cả trạng thái' },
@@ -119,11 +122,36 @@ const statusOptions = [
   { value: 'inactive', label: 'Ngừng theo dõi' }
 ]
 
-const unitOptions = [
-  { value: null, label: 'Tất cả đơn vị' },
-  { value: 1, label: 'Misa Test pdthien 2024' },
-  { value: 2, label: 'Chi nhánh miền Bắc' },
-  { value: 3, label: 'Chi nhánh miền Nam' }
+const unitTreeData = [
+  {
+    id: 1,
+    name: 'Misa Test pdthien 2024',
+    items: [
+      {
+        id: 11,
+        name: 'Chi nhánh miền Bắc',
+        items: [
+          {
+            id: 111,
+            name: 'Khối sản xuất',
+            items: [
+              { id: 1111, name: 'Dự án Core' },
+              { id: 1112, name: 'Dự án C&B' }
+            ]
+          },
+          { id: 112, name: 'Trung tâm kinh doanh' },
+          { id: 113, name: 'Trung tâm hỗ trợ khách hàng' }
+        ]
+      },
+      {
+        id: 12,
+        name: 'Chi nhánh miền Nam',
+        items: [
+          { id: 121, name: 'Trung tâm kinh doanh' }
+        ]
+      }
+    ]
+  }
 ]
 
 // Table columns configuration
@@ -312,6 +340,17 @@ const goToAddForm = () => {
 
 .filter-unit-select :deep(.ms-select) {
   width: 350px;
+}
+
+/* Filter Tree Styling */
+.filter-unit-tree :deep(.ms-tree) {
+  width: 350px;
+  border: 1px solid #e0e0e0;
+  background: transparent;
+}
+
+.filter-unit-tree:hover :deep(.ms-tree) {
+  border-color: #34b057;
 }
 
 /* Filter/Setting Buttons */

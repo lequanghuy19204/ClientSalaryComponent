@@ -321,3 +321,17 @@
   width: 20px;
   height: 20px;
 }
+
+.icon-mi-square-default {
+  background: url(https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=)
+    no-repeat -240px 0px;
+  width: 20px;
+  height: 20px;
+}
+
+.icon-mi-close-small {
+  background: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -140px -80px;
+  width: 20px;
+  height: 20px;
+}

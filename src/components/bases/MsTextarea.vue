@@ -105,7 +105,7 @@ const onFocus = (event) => {
 }
 
 :deep(.ms-textarea:enabled:hover) {
-  border-color: #c4c4c4;
+  border-color: #34b057;
 }
 
 :deep(.ms-textarea:enabled:focus) {

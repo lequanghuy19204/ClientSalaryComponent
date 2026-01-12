@@ -12,7 +12,11 @@
       @change="onChange"
       @blur="onBlur"
       @focus="onFocus"
-    />
+    >
+      <template #dropdownicon>
+        <span class="icon-down"></span>
+      </template>
+    </Select>
     <span v-if="hasError && errorMessage" class="ms-select-error-message">{{ errorMessage }}</span>
   </div>
 </template>
@@ -103,7 +107,7 @@ const onFocus = (event) => {
 
 /* Size variants */
 :deep(.ms-select-small) {
-  width: 150px;
+  width: 110px;
 }
 
 :deep(.ms-select-medium) {
@@ -111,7 +115,8 @@ const onFocus = (event) => {
 }
 
 :deep(.ms-select-large) {
-  width: 350px;
+  width: 674px;
+  max-width: 100%;
 }
 
 :deep(.ms-select-full) {

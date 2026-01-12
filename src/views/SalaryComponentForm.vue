@@ -53,13 +53,14 @@
         <div class="form-row">
           <label class="form-label-left"><b>Đơn vị áp dụng</b></label>
           <div class="form-input-right">
-            <MsMultiSelect
+            <MsTree
               v-model="formData.unitIds"
-              :options="units"
-              optionLabel="name"
-              optionValue="id"
-              placeholder="Chọn đơn vị"
-              size="large"
+              :data-source="unitTreeData"
+              key-expr="id"
+              display-expr="name"
+              placeholder=""
+              :max-selected-labels="3"
+              class="form-unit-tree"
             />
           </div>
         </div>
@@ -87,16 +88,22 @@
               placeholder="Chọn tính chất"
               size="medium"
             />
-            <div class="tax-options">
+            <!-- Thu nhập: 3 radio buttons -->
+            <div class="tax-options" v-if="formData.property === 'income'">
               <MsRadioButton v-model="formData.taxOption" value="taxable" label="Chịu thuế" />
               <MsRadioButton v-model="formData.taxOption" value="tax_exempt_full" label="Miễn thuế toàn phần" />
               <MsRadioButton v-model="formData.taxOption" value="tax_exempt_partial" label="Miễn thuế một phần" />
             </div>
+            <!-- Khấu trừ: 1 checkbox -->
+            <div class="tax-options" v-else-if="formData.property === 'deduction'">
+              <MsCheckbox v-model="formData.deductWhenCalculatingTax" label="Giảm trừ khi tính thuế" />
+            </div>
+            <!-- Khác: không hiển thị gì -->
           </div>
         </div>
 
-        <!-- Row 6: Định mức -->
-        <div class="form-row">
+        <!-- Row 6: Định mức (ẩn khi chọn Khác) -->
+        <div class="form-row" v-if="formData.property !== 'other'">
           <label class="form-label-left"><b>Định mức</b></label>
           <div class="form-input-right">
             <MsTextarea
@@ -108,8 +115,8 @@
           </div>
         </div>
 
-        <!-- Row 7: Checkbox cho phép vượt định mức -->
-        <div class="form-row">
+        <!-- Row 7: Checkbox cho phép vượt định mức (ẩn khi chọn Khác) -->
+        <div class="form-row" v-if="formData.property !== 'other'">
           <label class="form-label-left"></label>
           <div class="form-input-right">
             <div class="checkbox-group">
@@ -126,7 +133,7 @@
             <MsSelect
               v-model="formData.valueType"
               :options="valueTypes"
-              :disabled="true"
+              :disabled="formData.property !== 'other'"
               size="medium"
             />
           </div>
@@ -150,6 +157,24 @@
                   :disabled="formData.valueCalculation !== 'auto_sum'"
                   size="medium"
                   class="ml-4"
+                />
+                <!-- Cấp cơ cấu tổ chức -->
+                <MsSelect
+                  v-if="formData.sumScope === 'org_structure'"
+                  v-model="formData.orgLevel"
+                  :options="orgLevelOptions"
+                  :disabled="formData.valueCalculation !== 'auto_sum'"
+                  size="small"
+                />
+              </div>
+              <!-- Select thành phần lương khi chọn auto_sum -->
+              <div class="value-option" v-if="formData.valueCalculation === 'auto_sum'">
+                <MsSelect
+                  v-model="formData.salaryComponentToSum"
+                  :options="salaryComponentOptions"
+                  placeholder="Chọn thành phần lương để cộng giá trị"
+                  size="large"
+                  class="ml-component-select"
                 />
               </div>
               <!-- Option 2: Tính theo công thức -->
@@ -178,7 +203,7 @@
           <div class="form-input-right">
             <MsTextarea
               v-model="formData.description"
-              :rows="3"
+              :rows="2"
               class="w-full"
             />
           </div>
@@ -212,7 +237,7 @@ import { useRouter, useRoute } from 'vue-router'
 import MsInput from '@/components/bases/MsInput.vue'
 import MsTextarea from '@/components/bases/MsTextarea.vue'
 import MsSelect from '@/components/bases/MsSelect.vue'
-import MsMultiSelect from '@/components/bases/MsMultiSelect.vue'
+import MsTree from '@/components/bases/MsTree.vue'
 import MsRadioButton from '@/components/bases/MsRadioButton.vue'
 import MsCheckbox from '@/components/bases/MsCheckbox.vue'
 import MsButton from '@/components/bases/MsButton.vue'
@@ -225,52 +250,101 @@ const isEdit = computed(() => !!route.params.id)
 const formData = reactive({
   code: '',
   name: '',
-  unitIds: [2],
+  unitIds: [],
   type: '',
-  property: '',
+  property: 'income',
   taxOption: 'taxable',
+  deductWhenCalculatingTax: false,
   quota: '',
   allowExceedQuota: false,
   valueType: 'currency',
   valueCalculation: 'formula',
   sumScope: 'same_unit',
+  orgLevel: 'level_4',
+  salaryComponentToSum: '',
   valueFormula: '',
   description: '',
   showOnPayslip: 'yes',
   source: 'manual'
 })
 
-const units = ref([
-  { id: 1, name: 'Tất cả' },
-  { id: 2, name: 'Misa Test pdthien 2024' },
-  { id: 3, name: 'Chi nhánh miền Bắc' },
-  { id: 4, name: 'Chi nhánh miền Nam' }
-])
+const unitTreeData = [
+  {
+    id: 1,
+    name: 'Misa Test pdthien 2024',
+    items: [
+      {
+        id: 11,
+        name: 'Chi nhánh miền Bắc',
+        items: [
+          {
+            id: 111,
+            name: 'Khối sản xuất',
+            items: [
+              { id: 1111, name: 'Dự án Core' },
+              { id: 1112, name: 'Dự án C&B' }
+            ]
+          },
+          { id: 112, name: 'Trung tâm kinh doanh' },
+          { id: 113, name: 'Trung tâm hỗ trợ khách hàng' }
+        ]
+      },
+      {
+        id: 12,
+        name: 'Chi nhánh miền Nam',
+        items: [
+          { id: 121, name: 'Trung tâm kinh doanh' }
+        ]
+      }
+    ]
+  }
+]
 
 const componentTypes = ref([
-  { value: 'salary', label: 'Lương' },
   { value: 'employee_info', label: 'Thông tin nhân viên' },
-  { value: 'allowance', label: 'Phụ cấp' },
-  { value: 'deduction', label: 'Giảm trừ' }
+  { value: 'attendance', label: 'Chấm công' },
+  { value: 'revenue', label: 'Doanh số' },
+  { value: 'kpi', label: 'KPI' },
+  { value: 'product', label: 'Sản phẩm' },
+  { value: 'salary', label: 'Lương' },
+  { value: 'pit', label: 'Thuế TNCN' },
+  { value: 'insurance_union', label: 'Bảo hiểm - Công đoàn' },
+  { value: 'other', label: 'Khác' }
 ])
 
 const properties = ref([
   { value: 'income', label: 'Thu nhập' },
-  { value: 'taxable', label: 'Chịu thuế' },
-  { value: 'non_taxable', label: 'Không chịu thuế' },
-  { value: 'deduction', label: 'Giảm trừ' }
+  { value: 'deduction', label: 'Khấu trừ' },
+  { value: 'other', label: 'Khác' }
 ])
 
 const valueTypes = ref([
-  { value: 'currency', label: 'Tiền tệ' },
   { value: 'number', label: 'Số' },
+  { value: 'currency', label: 'Tiền tệ' },
   { value: 'percent', label: 'Phần trăm' },
-  { value: 'formula', label: 'Công thức' }
+  { value: 'text', label: 'Chữ' },
+  { value: 'date', label: 'Ngày' }
 ])
 
 const sumScopeOptions = ref([
   { value: 'same_unit', label: 'Trong cùng đơn vị công tác' },
-  { value: 'all_units', label: 'Tất cả đơn vị' }
+  { value: 'subordinate', label: 'Dưới quyền' },
+  { value: 'org_structure', label: 'Thuộc cơ cấu tổ chức' }
+])
+
+const orgLevelOptions = ref([
+  { value: 'level_1', label: 'Cấp 1' },
+  { value: 'level_2', label: 'Cấp 2' },
+  { value: 'level_3', label: 'Cấp 3' },
+  { value: 'level_4', label: 'Cấp 4' }
+])
+
+const salaryComponentOptions = ref([
+  { value: 'base_salary', label: 'Lương cơ bản' },
+  { value: 'allowance', label: 'Phụ cấp' },
+  { value: 'bonus', label: 'Thưởng' },
+  { value: 'overtime', label: 'Làm thêm giờ' },
+  { value: 'insurance', label: 'Bảo hiểm' }
 ])
 
 const sources = ref([
@@ -302,13 +376,16 @@ const handleSaveAndAdd = () => {
     name: '',
     unitIds: [],
     type: '',
-    property: '',
+    property: 'income',
     taxOption: 'taxable',
+    deductWhenCalculatingTax: false,
     quota: '',
     allowExceedQuota: false,
     valueType: 'currency',
     valueCalculation: 'formula',
     sumScope: 'same_unit',
+    orgLevel: 'level_4',
+    salaryComponentToSum: '',
     valueFormula: '',
     description: '',
     showOnPayslip: 'yes',
@@ -495,5 +572,31 @@ const handleSaveAndAdd = () => {
 /* Utility Classes */
 .ml-4 {
   margin-left: 16px;
+}
+
+.ml-component-select {
+  margin-left: 0;
+}
+
+/* Form Unit Tree */
+.form-unit-tree {
+  width: 100%;
+  max-width: 674px;
+}
+
+.form-unit-tree :deep(.ms-tree-wrapper) {
+  width: 100%;
+  display: flex;
+  height: 34px;
+}
+
+.form-unit-tree :deep(.ms-tree) {
+  width: 100%;
+  height: 34px;
+  min-height: 34px;
+}
+
+.form-unit-tree :deep(.ms-tree-display) {
+  line-height: 1;
 }
 </style>

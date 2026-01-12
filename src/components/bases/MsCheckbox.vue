@@ -10,7 +10,7 @@
     <div class="ms-checkbox-box">
       <span
         class="icon d-inline-block"
-        :class="modelValue ? 'icon-mi-square-check-primary' : 'icon-mi-checkbox-uncheck'"
+        :class="modelValue ? 'icon-mi-square-check-primary' : 'icon-mi-square-default'"
       ></span>
     </div>
     <label v-if="label" class="ms-checkbox-label" @click.stop="toggle">{{ label }}</label>
@@ -19,7 +19,6 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
 
 const props = defineProps({
   modelValue: {

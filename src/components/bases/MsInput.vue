@@ -97,7 +97,7 @@ const onFocus = (event) => {
 }
 
 :deep(.ms-input:enabled:hover) {
-  border-color: #c4c4c4;
+  border-color: #34b057;
 }
 
 :deep(.ms-input:enabled:focus) {

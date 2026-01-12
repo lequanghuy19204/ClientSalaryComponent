@@ -14,7 +14,11 @@
       @change="onChange"
       @blur="onBlur"
       @focus="onFocus"
-    />
+    >
+      <template #dropdownicon>
+        <span class="icon-down"></span>
+      </template>
+    </MultiSelect>
     <span v-if="hasError && errorMessage" class="ms-multiselect-error-message">{{ errorMessage }}</span>
   </div>
 </template>
