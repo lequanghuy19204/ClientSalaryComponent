@@ -294,3 +294,30 @@
   width: 20px;
   height: 20px;
 }
+
+.icon-mi-radio-button-check {
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -100px -20px;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -100px -20px;
+  background-color: #34b057 !important;
+  width: 20px;
+  height: 20px;
+}
+
+.icon-mi-radio-button-uncheck {
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -80px -20px;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -80px -20px;
+  background-color: #666 !important;
+  width: 20px;
+  height: 20px;
+}
+
+.icon-mi-square-check-primary {
+  background: url(https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=)
+    no-repeat -260px 0px;
+  width: 20px;
+  height: 20px;
+}

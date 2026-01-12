@@ -1,6 +1,7 @@
 <template>
-  <div class="base-table-wrapper flex-grow-1 overflow-hidden">
-    <DxDataGrid
+  <div class="base-grid-container d-flex flex-column flex-grow-1 overflow-hidden">
+    <div class="base-table-wrapper flex-grow-1 overflow-hidden">
+      <DxDataGrid
       :data-source="dataSource"
       :show-borders="false"
       :column-auto-width="false"
@@ -91,11 +92,60 @@
       <DxPaging :enabled="false" />
     </DxDataGrid>
   </div>
+
+    <!-- Pagination -->
+    <div v-if="showPagination" class="base-pagination d-flex align-items-center flex-shrink-0 position-relative">
+      <div class="pagination-total d-flex align-items-center gap-2">
+        Tổng số bản ghi:
+        <b>{{ totalRecords }}</b>
+      </div>
+      <div class="pagination-center d-flex align-items-center gap-3">
+        <div class="page-size-selector d-flex align-items-center gap-2">
+          <span class="page-size-label text-nowrap">Số bản ghi/trang</span>
+          <MsSelect
+            :model-value="pageSize"
+            :options="pageSizeOptions"
+            size="small"
+            class="page-size-select"
+            @update:model-value="onPageSizeChange"
+          />
+        </div>
+        <div class="page-info d-flex align-items-center gap-1">
+          <b>{{ startRecord }}</b>
+          -
+          <b>{{ endRecord }}</b>
+          bản ghi
+        </div>
+      </div>
+      <div class="pagination-nav d-flex align-items-center gap-1">
+        <MsButton
+          icon="icon-mi-chevron-left"
+          variant="text"
+          size="small"
+          class="nav-btn"
+          :disabled="currentPage === 1"
+          @click="prevPage"
+          title="Trước"
+        />
+        <MsButton
+          icon="icon-mi-chevron-right"
+          variant="text"
+          size="small"
+          class="nav-btn"
+          :disabled="currentPage === totalPages"
+          @click="nextPage"
+          title="Sau"
+        />
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { DxDataGrid, DxColumn, DxSelection, DxScrolling, DxPaging } from 'devextreme-vue/data-grid'
+import MsButton from '@/components/bases/MsButton.vue'
+import MsSelect from '@/components/bases/MsSelect.vue'
 
 const props = defineProps({
   dataSource: {
@@ -134,10 +184,63 @@ const props = defineProps({
       { name: 'edit', title: 'Sửa', icon: 'icon-mi-pencil' },
       { name: 'delete', title: 'Xóa', icon: 'icon-mi-trash-red' }
     ]
+  },
+  showPagination: {
+    type: Boolean,
+    default: true
+  },
+  currentPage: {
+    type: Number,
+    default: 1
+  },
+  pageSize: {
+    type: Number,
+    default: 15
+  },
+  totalRecords: {
+    type: Number,
+    default: 0
+  },
+  pageSizeOptions: {
+    type: Array,
+    default: () => [
+      { value: 15, label: '15' },
+      { value: 25, label: '25' },
+      { value: 50, label: '50' },
+      { value: 100, label: '100' }
+    ]
   }
 })
 
-const emit = defineEmits(['selection-changed', 'action'])
+const emit = defineEmits(['selection-changed', 'action', 'update:currentPage', 'update:pageSize', 'page-change', 'page-size-change'])
+
+// Pagination computed
+const totalPages = computed(() => Math.ceil(props.totalRecords / props.pageSize))
+const startRecord = computed(() => (props.currentPage - 1) * props.pageSize + 1)
+const endRecord = computed(() => Math.min(props.currentPage * props.pageSize, props.totalRecords))
+
+// Pagination methods
+const onPageSizeChange = (newSize) => {
+  emit('update:pageSize', newSize)
+  emit('update:currentPage', 1)
+  emit('page-size-change', newSize)
+}
+
+const prevPage = () => {
+  if (props.currentPage > 1) {
+    const newPage = props.currentPage - 1
+    emit('update:currentPage', newPage)
+    emit('page-change', newPage)
+  }
+}
+
+const nextPage = () => {
+  if (props.currentPage < totalPages.value) {
+    const newPage = props.currentPage + 1
+    emit('update:currentPage', newPage)
+    emit('page-change', newPage)
+  }
+}
 
 const columnsWithTemplates = computed(() => {
   return props.columns.filter(col => col.cellTemplate)
@@ -170,6 +273,47 @@ const onSelectionChanged = (e) => {
 
 .action-btn:hover {
   background: #e0e0e0;
+}
+
+/* Pagination */
+.base-pagination {
+  padding: 10px 20px;
+  background: #f6f6f6;
+  border-top: 1px solid #e0e0e0;
+  height: 60px;
+  z-index: 8;
+}
+
+.pagination-total {
+  font-size: 14px;
+  color: #212121;
+  margin-right: auto;
+}
+
+.pagination-total b {
+  padding: 0 6px;
+}
+
+.page-size-label {
+  font-size: 14px;
+  color: #212121;
+}
+
+.page-size-select :deep(.ms-select) {
+  width: 80px;
+}
+
+.page-info {
+  font-size: 14px;
+  color: #212121;
+}
+
+/* Navigation Buttons */
+.nav-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0;
 }
 </style>
 

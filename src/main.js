@@ -6,8 +6,23 @@ import './assets/css/fonts.css'
 import '@/assets/css/icons.css'
 import 'devextreme/dist/css/dx.light.css'
 
+// PrimeVue
+import PrimeVue from 'primevue/config'
+import Aura from '@primevue/themes/aura'
+import 'primeicons/primeicons.css'
+import Tooltip from 'primevue/tooltip'
+
 const app = createApp(App)
 
 app.use(router)
+app.use(PrimeVue, {
+  theme: {
+    preset: Aura,
+    options: {
+      darkModeSelector: false
+    }
+  }
+})
+app.directive('tooltip', Tooltip)
 
 app.mount('#app')
