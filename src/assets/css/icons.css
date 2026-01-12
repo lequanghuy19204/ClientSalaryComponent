@@ -251,6 +251,16 @@
   height: 20px;
 }
 
+.icon-mi-circle-check-green {
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -180px -40px;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -180px -40px;
+  background-color: #25b973 !important;
+  width: 20px;
+  height: 20px;
+}
+
 .icon-mi-copy {
   background: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
     no-repeat -80px 0;

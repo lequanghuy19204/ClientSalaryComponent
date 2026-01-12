@@ -24,7 +24,7 @@ body {
   font-family: Inter, Helvetica, Arial, sans-serif;
   font-size: 14px;
   color: #212121;
-  background-color: #f1f2f1;
+  background-color: #f1f2f1 !important;
 }
 
 .app {

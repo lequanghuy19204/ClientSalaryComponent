@@ -1,17 +1,17 @@
 <template>
-  <aside class="sidebar" :class="{ collapsed: isCollapsed }">
+  <aside class="sidebar d-flex flex-column position-fixed start-0" :class="{ collapsed: isCollapsed }">
     <!-- Menu chính -->
-    <nav class="sidebar-nav">
-      <ul class="sidebar-menu">
+    <nav class="sidebar-nav flex-grow-1 overflow-auto">
+      <ul class="sidebar-menu list-unstyled m-0 p-0">
         <li
           v-for="item in menuItems"
           :key="item.id"
           class="sidebar-item"
           :class="{ active: item.id === activeId }"
         >
-          <a href="#" class="sidebar-link" @click.prevent="handleClick(item.id)">
-            <span class="sidebar-icon" :class="item.icon"></span>
-            <span class="sidebar-text">{{ item.text }}</span>
+          <a href="#" class="sidebar-link d-flex align-items-center gap-2 text-decoration-none" @click.prevent="handleClick(item.id)">
+            <span class="sidebar-icon d-inline-block flex-shrink-0" :class="item.icon"></span>
+            <span class="sidebar-text flex-grow-1 text-truncate">{{ item.text }}</span>
             <span v-if="item.hasDropdown" class="sidebar-dropdown icon-sidebar-dropdown"></span>
           </a>
         </li>
@@ -20,8 +20,8 @@
 
     <!-- Nút thu gọn -->
     <div class="sidebar-footer">
-      <button class="sidebar-toggle" @click="toggleSidebar">
-        <span class="sidebar-icon-toggle" :class="isCollapsed ? 'icon-sidebar-zoom-out' : 'icon-sidebar-zoom'"></span>
+      <button class="sidebar-toggle d-flex align-items-center justify-content-center gap-2 border-0" @click="toggleSidebar">
+        <span class="sidebar-icon-toggle d-inline-block flex-shrink-0" :class="isCollapsed ? 'icon-sidebar-zoom-out' : 'icon-sidebar-zoom'"></span>
         <span class="sidebar-text">Thu gọn</span>
       </button>
     </div>
@@ -60,26 +60,14 @@ const toggleSidebar = () => {
   width: 220px;
   height: calc(100vh - 48px);
   background: #161a17;
-  display: flex;
-  flex-direction: column;
   font-family: 'Inter', sans-serif;
-  position: fixed;
-  left: 0;
   top: 48px;
   transition: width 0.1s ease;
 }
 
 /* Navigation */
 .sidebar-nav {
-  flex: 1;
   padding-top: 24px;
-  overflow-y: auto;
-}
-
-.sidebar-menu {
-  list-style: none;
-  margin: 0;
-  padding: 0;
 }
 
 /* Menu Item */
@@ -89,13 +77,9 @@ const toggleSidebar = () => {
 }
 
 .sidebar-link {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   height: 36px;
   padding: 0 12px;
   border-radius: 8px;
-  text-decoration: none;
   color: rgba(255, 255, 255, 0.7);
   font-size: 14px;
   font-weight: 400;
@@ -117,8 +101,6 @@ const toggleSidebar = () => {
 /* Icon */
 .sidebar-icon,
 .sidebar-icon-toggle {
-  display: inline-block;
-  flex-shrink: 0;
   opacity: 0.7;
   transition: opacity 0.2s ease;
 }
@@ -133,14 +115,6 @@ const toggleSidebar = () => {
 .sidebar-item.active .sidebar-icon,
 .sidebar-toggle:hover .sidebar-icon-toggle {
   opacity: 1;
-}
-
-/* Text */
-.sidebar-text {
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* Dropdown icon */
@@ -170,15 +144,10 @@ const toggleSidebar = () => {
 }
 
 .sidebar-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
   width: 176px;
   height: 36px;
   margin: 0 auto;
   background: rgba(255, 255, 255, 0.08);
-  border: none;
   border-radius: 8px;
   color: rgba(255, 255, 255, 0.7);
   font-family: 'Inter', sans-serif;

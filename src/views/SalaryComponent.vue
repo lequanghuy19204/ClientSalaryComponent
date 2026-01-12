@@ -1,200 +1,98 @@
 <template>
-  <div class="salary-page">
+  <div class="salary-page d-flex flex-column overflow-hidden">
     <!-- Header Section (nằm ngoài card) -->
-    <div class="salary-header">
+    <div class="salary-header d-flex justify-content-between align-items-center flex-shrink-0">
       <h1 class="salary-title">Thành phần lương</h1>
-      <div class="salary-toolbar">
+      <div class="salary-toolbar d-flex align-items-center gap-2">
         <!-- Thiết lập công thức button -->
-        <button class="btn btn-outline">
-          <span class="icon icon-mi-rule"></span>
-          <span class="btn-text">Danh mục của hệ thống</span>
+        <button class="btn btn-outline d-flex align-items-center justify-content-center gap-2">
+          <span class="icon d-inline-block flex-shrink-0 icon-mi-rule"></span>
+          <span class="btn-text text-nowrap">Danh mục của hệ thống</span>
         </button>
         <!-- Thêm mới button -->
-        <div class="btn-group">
-          <button class="btn btn-primary">
-            <span class="icon icon-mi-plus-white"></span>
-            <span class="btn-text">Thêm mới</span>
+        <div class="btn-group d-flex">
+          <button class="btn btn-primary d-flex align-items-center justify-content-center gap-2" @click="goToAddForm">
+            <span class="icon d-inline-block flex-shrink-0 icon-mi-plus-white"></span>
+            <span class="btn-text text-nowrap">Thêm mới</span>
           </button>
-          <button class="btn btn-primary btn-dropdown">
-            <span class="icon icon-down-white"></span>
+          <button class="btn btn-primary btn-dropdown d-flex align-items-center justify-content-center">
+            <span class="icon d-inline-block flex-shrink-0 icon-down-white"></span>
           </button>
         </div>
       </div>
     </div>
 
     <!-- Content Card -->
-    <div class="salary-component">
+    <div class="salary-component d-flex flex-column flex-grow-1 overflow-hidden bg-white rounded-1">
       <!-- Filter Section -->
-      <div class="salary-filter">
+      <div class="salary-filter d-flex align-items-center justify-content-between flex-shrink-0 bg-white">
         <!-- Search Input -->
-        <div class="filter-search">
-          <div class="search-icon-wrapper">
-            <span class="icon icon-search"></span>
+        <div class="filter-search d-flex align-items-center overflow-hidden bg-white rounded-1">
+          <div class="search-icon-wrapper d-flex align-items-center justify-content-center">
+            <span class="icon d-inline-block flex-shrink-0 icon-search"></span>
           </div>
           <input
             type="text"
-            class="search-input"
+            class="search-input flex-grow-1 border-0"
             placeholder="Tìm kiếm"
             v-model="searchText"
           />
         </div>
 
         <!-- Filter Controls -->
-        <div class="filter-controls">
+        <div class="filter-controls d-flex align-items-center gap-2">
           <!-- Tất cả trạng thái -->
-          <button class="filter-dropdown">
+          <button class="filter-dropdown d-flex align-items-center gap-2 bg-transparent border-0 rounded-1">
             <span class="filter-text">Tất cả trạng thái</span>
-            <span class="dropdown-icon icon-down"></span>
+            <span class="dropdown-icon d-inline-block icon-down"></span>
           </button>
 
           <!-- Tất cả đơn vị -->
-          <div class="filter-unit-wrapper">
-            <div class="filter-unit-input">
-              <span class="filter-text">Tất cả đơn vị</span>
+          <div class="filter-unit-wrapper d-flex align-items-center bg-white rounded-1">
+            <div class="filter-unit-input d-flex align-items-center flex-grow-1">
+              <span class="filter-text text-truncate">Tất cả đơn vị</span>
             </div>
-            <button class="filter-unit-btn">
-              <span class="dropdown-icon icon-down"></span>
+            <button class="filter-unit-btn d-flex align-items-center justify-content-center bg-transparent border-0">
+              <span class="dropdown-icon d-inline-block icon-down"></span>
             </button>
           </div>
 
           <!-- Filter Button -->
-          <button class="filter-btn" title="Bộ lọc">
-            <span class="icon icon-mi-filter"></span>
+          <button class="filter-btn d-flex align-items-center justify-content-center bg-transparent border-0 rounded-1" title="Bộ lọc">
+            <span class="icon d-inline-block flex-shrink-0 icon-mi-filter"></span>
           </button>
 
           <!-- Setting Button -->
-          <button class="filter-btn" title="Thiết lập">
-            <span class="icon icon-mi-setting"></span>
+          <button class="filter-btn d-flex align-items-center justify-content-center bg-transparent border-0 rounded-1" title="Thiết lập">
+            <span class="icon d-inline-block flex-shrink-0 icon-mi-setting"></span>
           </button>
         </div>
       </div>
 
-      <!-- Table Section - DevExtreme DataGrid -->
-      <div class="salary-table-wrapper">
-        <DxDataGrid
-          :data-source="salaryComponents"
-          :show-borders="false"
-          :column-auto-width="false"
-          :row-alternation-enabled="false"
-          :hover-state-enabled="true"
-          :show-column-lines="true"
-          :show-row-lines="true"
-          key-expr="id"
-          height="100%"
-          @selection-changed="onSelectionChanged"
-        >
-          <DxSelection mode="multiple" show-check-boxes-mode="always" />
-          <DxScrolling mode="virtual" column-rendering-mode="virtual" />
-
-          <!-- Fixed checkbox column on left -->
-          <DxColumn
-            type="selection"
-            :width="40"
-            :fixed="true"
-            fixed-position="left"
-            css-class="cell-column"
-          />
-
-          <DxColumn
-            data-field="code"
-            caption="Mã thành phần"
-            :width="200"
-            :min-width="200"
-            css-class="cell-column"
-          />
-          <DxColumn
-            data-field="name"
-            caption="Tên thành phần"
-            :width="280"
-            :min-width="200"
-            css-class="cell-column"
-          />
-          <DxColumn
-            data-field="unit"
-            caption="Đơn vị áp dụng"
-            :width="200"
-            :min-width="200"
-            css-class="cell-column"
-          />
-          <DxColumn
-            data-field="type"
-            caption="Loại thành phần"
-            :width="200"
-            :min-width="200"
-            css-class="cell-column"
-            cell-template="typeTemplate"
-          />
-          <DxColumn
-            data-field="property"
-            caption="Tính chất"
-            :width="200"
-            :min-width="200"
-            css-class="cell-column"
-            cell-template="propertyTemplate"
-          />
-
-          <!-- Fixed action column on right -->
-          <DxColumn
-            caption=""
-            :width="177"
-            :min-width="177"
-            :allow-sorting="false"
-            :fixed="true"
-            fixed-position="right"
-            css-class="cell-column action-column"
-            cell-template="actionsTemplate"
-            header-cell-template="emptyHeaderTemplate"
-          />
-
-          <!-- Custom Templates -->
-          <template #emptyHeaderTemplate>
-            <span></span>
-          </template>
-
-          <template #typeTemplate="{ data }">
-            <span>{{ data.value }}</span>
-          </template>
-
-          <template #propertyTemplate="{ data }">
-            <span>{{ data.value }}</span>
-          </template>
-
-          <template #actionsTemplate="{ data }">
-            <div class="action-buttons" :data-row-id="data.data.id">
-              <button class="action-btn" title="Ngừng theo dõi">
-                <span class="icon icon-mi-circle-minus-yellow"></span>
-              </button>
-              <button class="action-btn" title="Nhân bản">
-                <span class="icon icon-mi-copy"></span>
-              </button>
-              <button class="action-btn" title="Sửa">
-                <span class="icon icon-mi-pencil"></span>
-              </button>
-              <button class="action-btn" title="Xóa">
-                <span class="icon icon-mi-trash-red"></span>
-              </button>
-            </div>
-          </template>
-
-          <DxPaging :enabled="false" />
-        </DxDataGrid>
-      </div>
+      <!-- Table Section - Using BaseDataGrid -->
+      <BaseDataGrid
+        :data-source="salaryComponents"
+        :columns="tableColumns"
+        key-expr="id"
+        @selection-changed="onSelectionChanged"
+        @action="onAction"
+      />
 
       <!-- Pagination -->
-      <div class="salary-pagination">
-        <div class="pagination-total">
+      <div class="salary-pagination d-flex align-items-center flex-shrink-0 position-relative">
+        <div class="pagination-total d-flex align-items-center gap-2">
           Tổng số bản ghi:
           <b>{{ totalRecords }}</b>
         </div>
-        <div class="pagination-center">
-          <div class="page-size-selector">
-            <span class="page-size-label">Số bản ghi/trang</span>
-            <div class="page-size-dropdown">
-              <button class="page-size-btn" @click="togglePageSizeDropdown">
+        <div class="pagination-center d-flex align-items-center gap-3">
+          <div class="page-size-selector d-flex align-items-center gap-2">
+            <span class="page-size-label text-nowrap">Số bản ghi/trang</span>
+            <div class="page-size-dropdown position-relative">
+              <button class="page-size-btn d-flex align-items-center justify-content-between bg-white rounded-1" @click="togglePageSizeDropdown">
                 <span class="page-size-value">{{ pageSize }}</span>
-                <span class="icon icon-down"></span>
+                <span class="icon d-inline-block flex-shrink-0 icon-down"></span>
               </button>
-              <div class="page-size-options" v-if="showPageSizeDropdown">
+              <div class="page-size-options position-absolute bg-white rounded-1" v-if="showPageSizeDropdown">
                 <div
                   v-for="size in pageSizeOptions"
                   :key="size"
@@ -207,31 +105,31 @@
               </div>
             </div>
           </div>
-          <div class="page-info">
+          <div class="page-info d-flex align-items-center gap-1">
             <b>{{ startRecord }}</b>
             -
             <b>{{ endRecord }}</b>
             bản ghi
           </div>
         </div>
-        <div class="pagination-nav">
+        <div class="pagination-nav d-flex align-items-center gap-1">
           <button
-            class="nav-btn"
+            class="nav-btn d-flex align-items-center justify-content-center bg-transparent border-0 rounded-1"
             :class="{ disabled: currentPage === 1 }"
             :disabled="currentPage === 1"
             @click="prevPage"
             title="Trước"
           >
-            <span class="icon icon-mi-chevron-left"></span>
+            <span class="icon d-inline-block flex-shrink-0 icon-mi-chevron-left"></span>
           </button>
           <button
-            class="nav-btn"
+            class="nav-btn d-flex align-items-center justify-content-center bg-transparent border-0 rounded-1"
             :class="{ disabled: currentPage === totalPages }"
             :disabled="currentPage === totalPages"
             @click="nextPage"
             title="Sau"
           >
-            <span class="icon icon-mi-chevron-right"></span>
+            <span class="icon d-inline-block flex-shrink-0 icon-mi-chevron-right"></span>
           </button>
         </div>
       </div>
@@ -241,9 +139,21 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { DxDataGrid, DxColumn, DxSelection, DxScrolling, DxPaging } from 'devextreme-vue/data-grid'
+import { useRouter } from 'vue-router'
+import BaseDataGrid from '@/components/bases/BaseDataGrid.vue'
+
+const router = useRouter()
 
 const searchText = ref('')
+
+// Table columns configuration
+const tableColumns = [
+  { dataField: 'code', caption: 'Mã thành phần', width: 200, minWidth: 200 },
+  { dataField: 'name', caption: 'Tên thành phần', width: 280, minWidth: 200 },
+  { dataField: 'unit', caption: 'Đơn vị áp dụng', width: 200, minWidth: 200 },
+  { dataField: 'type', caption: 'Loại thành phần', width: 200, minWidth: 200 },
+  { dataField: 'property', caption: 'Tính chất', width: 200, minWidth: 200 }
+]
 
 // Pagination state
 const currentPage = ref(1)
@@ -345,8 +255,16 @@ const salaryComponents = ref([
   }
 ])
 
-const onSelectionChanged = (e) => {
-  console.log('Selected rows:', e.selectedRowsData)
+const onSelectionChanged = (selectedRows) => {
+  console.log('Selected rows:', selectedRows)
+}
+
+const onAction = ({ action, data }) => {
+  console.log('Action:', action, 'Data:', data)
+}
+
+const goToAddForm = () => {
+  router.push({ name: 'salary-component-add' })
 }
 </script>
 
@@ -355,18 +273,11 @@ const onSelectionChanged = (e) => {
 .salary-page {
   padding: 16px 24px;
   height: calc(100vh - 48px);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
 }
 
 /* Header Section (nằm ngoài card) */
 .salary-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding: 0 0px 16px 0px;
-  flex-shrink: 0;
 }
 
 .salary-title {
@@ -377,34 +288,16 @@ const onSelectionChanged = (e) => {
   line-height: 30px;
 }
 
-.salary-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 /* Content Card */
 .salary-component {
-  background-color: #fff;
-  border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
 }
 
 /* Buttons */
 .btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
   height: 36px;
   padding: 0 16px;
-  border-radius: 4px;
   border: 1px solid #ebebeb;
-  background: #fff;
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 500;
@@ -433,10 +326,6 @@ const onSelectionChanged = (e) => {
   border-color: #ebebeb;
 }
 
-.btn-group {
-  display: flex;
-}
-
 .btn-group .btn:first-child {
   border-radius: 4px 0 0 4px;
 }
@@ -451,50 +340,25 @@ const onSelectionChanged = (e) => {
   min-width: 36px;
 }
 
-.btn-text {
-  white-space: nowrap;
-}
-
-/* Icons */
-.icon {
-  display: inline-block;
-  flex-shrink: 0;
-}
-
 /* Filter Section */
 .salary-filter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: 12px 20px;
-  background-color: #fff;
   height: 61px;
-  flex-shrink: 0;
 }
 
 /* Search Input */
 .filter-search {
-  display: flex;
-  align-items: center;
   width: 300px;
   height: 36px;
   border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  background: #fff;
-  overflow: hidden;
 }
 
 .filter-search .search-icon-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding-left: 8px;
 }
 
 .filter-search .search-input {
-  flex: 1;
   height: 100%;
-  border: none;
   outline: none;
   padding: 0 12px;
   font-family: 'Inter', sans-serif;
@@ -507,25 +371,12 @@ const onSelectionChanged = (e) => {
   color: #666;
 }
 
-/* Filter Controls */
-.filter-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 /* Tất cả trạng thái dropdown */
 .filter-dropdown {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   height: 36px;
   padding: 0 12px;
   margin-right: 16px;
-  background: transparent;
-  border: none;
   cursor: pointer;
-  border-radius: 4px;
   transition: background 0.2s ease;
 }
 
@@ -538,47 +389,28 @@ const onSelectionChanged = (e) => {
   font-weight: 400;
   color: #212121;
 }
+
 .dropdown-icon {
   width: 12px;
   height: 6px;
-  display: inline-block;
 }
 
 /* Tất cả đơn vị - combobox style */
 .filter-unit-wrapper {
-  display: flex;
-  align-items: center;
   width: 350px;
   height: 36px;
   border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  background: #fff;
   margin-right: 8px;
 }
 
 .filter-unit-input {
-  flex: 1;
-  display: flex;
-  align-items: center;
   padding: 0 12px;
   height: 100%;
 }
 
-.filter-unit-input .filter-text {
-  color: #212121;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .filter-unit-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 32px;
   height: 100%;
-  background: transparent;
-  border: none;
   cursor: pointer;
 }
 
@@ -588,15 +420,9 @@ const onSelectionChanged = (e) => {
 
 /* Filter/Setting Buttons */
 .filter-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 36px;
   height: 36px;
-  border: none;
-  background: transparent;
   cursor: pointer;
-  border-radius: 4px;
   transition: background 0.2s ease;
 }
 
@@ -604,58 +430,18 @@ const onSelectionChanged = (e) => {
   background: #f5f5f5;
 }
 
-/* Table Section */
-.salary-table-wrapper {
-  flex: 1;
-  overflow: hidden;
-  min-height: 0;
-}
-
-/* Action Buttons */
-.action-buttons {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-.action-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 36px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background 0.15s ease;
-}
-
-.action-btn:hover {
-  background: #e0e0e0;
-}
-
 /* Pagination */
 .salary-pagination {
-  display: flex;
-  align-items: center;
   padding: 10px 20px;
   background: #f6f6f6;
   border-top: 1px solid #e0e0e0;
   height: 60px;
-  flex-shrink: 0;
-  position: relative;
   z-index: 8;
 }
 
 .pagination-total {
   font-size: 14px;
   color: #212121;
-  display: flex;
-  align-items: center;
-  gap: 6px;
   margin-right: auto;
 }
 
@@ -663,38 +449,16 @@ const onSelectionChanged = (e) => {
   padding: 0 6px;
 }
 
-.pagination-center {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.page-size-selector {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .page-size-label {
   font-size: 14px;
   color: #212121;
-  white-space: nowrap;
-}
-
-.page-size-dropdown {
-  position: relative;
 }
 
 .page-size-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   width: 80px;
   height: 36px;
   padding: 0 8px 0 12px;
-  background: #fff;
   border: 1px solid #e0e0e0;
-  border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
   color: #212121;
@@ -710,13 +474,10 @@ const onSelectionChanged = (e) => {
 }
 
 .page-size-options {
-  position: absolute;
   top: 100%;
   left: 0;
   width: 80px;
-  background: #fff;
   border: 1px solid #e0e0e0;
-  border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   z-index: 10;
   margin-top: 4px;
@@ -742,27 +503,12 @@ const onSelectionChanged = (e) => {
 .page-info {
   font-size: 14px;
   color: #212121;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.pagination-nav {
-  display: flex;
-  align-items: center;
-  gap: 4px;
 }
 
 .nav-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 32px;
   height: 32px;
-  border: none;
-  background: transparent;
   cursor: pointer;
-  border-radius: 4px;
   transition: background 0.2s ease;
   color: #212121;
 }
@@ -774,115 +520,5 @@ const onSelectionChanged = (e) => {
 .nav-btn.disabled {
   opacity: 0.4;
   cursor: not-allowed;
-}
-</style>
-
-<style>
-/* DevExtreme DataGrid Custom Styles - Global */
-.salary-table-wrapper .dx-datagrid {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  border: none;
-  height: 100%;
-}
-
-.salary-table-wrapper .dx-datagrid-headers {
-  background: #f6f6f6 !important;
-}
-
-.salary-table-wrapper .dx-datagrid-headers .dx-header-row {
-  height: 36px;
-  background: #f6f6f6 !important;
-}
-
-.salary-table-wrapper .dx-datagrid-headers .dx-header-row td {
-  font-weight: 700;
-  color: #212121;
-  padding: 0 16px;
-  border: none;
-  border-bottom: 1px solid #ebebeb;
-  line-height: 36px;
-  vertical-align: middle;
-  background: #f6f6f6 !important;
-}
-
-.salary-table-wrapper .dx-datagrid-rowsview .dx-row {
-  height: 36px;
-}
-
-.salary-table-wrapper .dx-datagrid-rowsview .dx-row td {
-  padding: 0 16px;
-  border: none;
-  border-bottom: 1px solid #ebebeb;
-  color: #212121;
-  line-height: 36px;
-  vertical-align: middle;
-}
-
-.salary-table-wrapper .dx-datagrid-rowsview .dx-row:hover {
-  background: #eafbf2 !important;
-}
-
-.salary-table-wrapper .dx-datagrid-rowsview .dx-row:hover td {
-  background: #eafbf2 !important;
-}
-
-.salary-table-wrapper .dx-datagrid-rowsview .dx-row:hover .action-buttons {
-  opacity: 1;
-}
-
-.salary-table-wrapper .dx-datagrid-rowsview .dx-selection td {
-  background: #e8f5e9 !important;
-}
-
-.salary-table-wrapper .dx-checkbox-icon {
-  width: 16px;
-  height: 16px;
-}
-
-.salary-table-wrapper .dx-checkbox-checked .dx-checkbox-icon {
-  background-color: #34b057;
-  border-color: #34b057;
-}
-
-.salary-table-wrapper .dx-datagrid .dx-column-lines > td {
-  border-left: none;
-  border-right: none;
-}
-
-.salary-table-wrapper .dx-datagrid-borders > .dx-datagrid-headers {
-  border: none;
-}
-
-.salary-table-wrapper .dx-datagrid-borders > .dx-datagrid-rowsview {
-  border: none;
-}
-
-/* Fixed columns styles */
-.salary-table-wrapper .dx-datagrid-content-fixed {
-  background: transparent;
-}
-
-.salary-table-wrapper .dx-datagrid-content-fixed .dx-datagrid-table {
-  background: #fff;
-}
-
-.salary-table-wrapper .dx-datagrid-content-fixed .dx-row:hover td {
-  background: #eafbf2 !important;
-}
-
-.salary-table-wrapper .dx-datagrid-content-fixed .dx-header-row td {
-  background: #f6f6f6 !important;
-}
-
-/* Action column fixed right - show on hover */
-.salary-table-wrapper .dx-datagrid-rowsview .dx-row .action-buttons {
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-.salary-table-wrapper .dx-datagrid-rowsview .dx-row:hover .action-buttons,
-.salary-table-wrapper .dx-datagrid-content-fixed .dx-row:hover .action-buttons {
-  opacity: 1;
 }
 </style>
