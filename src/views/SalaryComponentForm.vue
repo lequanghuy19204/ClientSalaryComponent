@@ -32,6 +32,8 @@
               class="w-full"
               :maxlength="255"
               :autofocus="true"
+              :has-error="!!formErrors.name"
+              :error-message="formErrors.name"
             />
           </div>
         </div>
@@ -45,6 +47,9 @@
               class="w-full"
               placeholder="Nhập mã viết liền"
               :maxlength="255"
+              :has-error="!!formErrors.code"
+              :error-message="formErrors.code"
+              @input="onCodeInput"
             />
           </div>
         </div>
@@ -72,8 +77,10 @@
             <MsSelect
               v-model="formData.type"
               :options="componentTypes"
-              placeholder="Chọn loại thành phần"
+              placeholder=""
               size="medium"
+              :has-error="!!formErrors.type"
+              :error-message="formErrors.type"
             />
           </div>
         </div>
@@ -87,6 +94,8 @@
               :options="properties"
               placeholder="Chọn tính chất"
               size="medium"
+              :has-error="!!formErrors.property"
+              :error-message="formErrors.property"
             />
             <!-- Thu nhập: 3 radio buttons -->
             <div class="tax-options" v-if="formData.property === 'income'">
@@ -232,8 +241,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import MsInput from '@/components/bases/MsInput.vue'
 import MsTextarea from '@/components/bases/MsTextarea.vue'
 import MsSelect from '@/components/bases/MsSelect.vue'
@@ -241,64 +250,149 @@ import MsTree from '@/components/bases/MsTree.vue'
 import MsRadioButton from '@/components/bases/MsRadioButton.vue'
 import MsCheckbox from '@/components/bases/MsCheckbox.vue'
 import MsButton from '@/components/bases/MsButton.vue'
+import { useSalaryComposition, useOrganization } from '@/composables'
 
-const router = useRouter()
 const route = useRoute()
+
+const {
+  form: formData,
+  fetchById,
+  save,
+  saveAndNew,
+  goBack
+} = useSalaryComposition()
+
+const { tree: unitTreeData, fetchTree } = useOrganization()
 
 const isEdit = computed(() => !!route.params.id)
 
-const formData = reactive({
-  code: '',
-  name: '',
-  unitIds: [],
-  type: '',
-  property: 'income',
-  taxOption: 'taxable',
-  deductWhenCalculatingTax: false,
-  quota: '',
-  allowExceedQuota: false,
-  valueType: 'currency',
-  valueCalculation: 'formula',
-  sumScope: 'same_unit',
-  orgLevel: 'level_4',
-  salaryComponentToSum: '',
-  valueFormula: '',
-  description: '',
-  showOnPayslip: 'yes',
-  source: 'manual'
+const isCodeManuallyEdited = ref(false)
+
+const removeVietnameseDiacritics = (str) => {
+  const diacriticsMap = {
+    'à': 'a', 'á': 'a', 'ả': 'a', 'ã': 'a', 'ạ': 'a',
+    'ă': 'a', 'ằ': 'a', 'ắ': 'a', 'ẳ': 'a', 'ẵ': 'a', 'ặ': 'a',
+    'â': 'a', 'ầ': 'a', 'ấ': 'a', 'ẩ': 'a', 'ẫ': 'a', 'ậ': 'a',
+    'đ': 'd',
+    'è': 'e', 'é': 'e', 'ẻ': 'e', 'ẽ': 'e', 'ẹ': 'e',
+    'ê': 'e', 'ề': 'e', 'ế': 'e', 'ể': 'e', 'ễ': 'e', 'ệ': 'e',
+    'ì': 'i', 'í': 'i', 'ỉ': 'i', 'ĩ': 'i', 'ị': 'i',
+    'ò': 'o', 'ó': 'o', 'ỏ': 'o', 'õ': 'o', 'ọ': 'o',
+    'ô': 'o', 'ồ': 'o', 'ố': 'o', 'ổ': 'o', 'ỗ': 'o', 'ộ': 'o',
+    'ơ': 'o', 'ờ': 'o', 'ớ': 'o', 'ở': 'o', 'ỡ': 'o', 'ợ': 'o',
+    'ù': 'u', 'ú': 'u', 'ủ': 'u', 'ũ': 'u', 'ụ': 'u',
+    'ư': 'u', 'ừ': 'u', 'ứ': 'u', 'ử': 'u', 'ữ': 'u', 'ự': 'u',
+    'ỳ': 'y', 'ý': 'y', 'ỷ': 'y', 'ỹ': 'y', 'ỵ': 'y'
+  }
+  
+  return str
+    .toLowerCase()
+    .split('')
+    .map(char => diacriticsMap[char] || char)
+    .join('')
+}
+
+const generateCodeFromName = (name) => {
+  if (!name) return ''
+  
+  return removeVietnameseDiacritics(name)
+    .toUpperCase()
+    .trim()
+    .replace(/\s+/g, '_')
+    .replace(/[^A-Z0-9_]/g, '')
+}
+
+watch(() => formData.name, (newName) => {
+  if (!isEdit.value && !isCodeManuallyEdited.value) {
+    formData.code = generateCodeFromName(newName)
+  }
 })
 
-const unitTreeData = [
-  {
-    id: 1,
-    name: 'Misa Test pdthien 2024',
-    items: [
-      {
-        id: 11,
-        name: 'Chi nhánh miền Bắc',
-        items: [
-          {
-            id: 111,
-            name: 'Khối sản xuất',
-            items: [
-              { id: 1111, name: 'Dự án Core' },
-              { id: 1112, name: 'Dự án C&B' }
-            ]
-          },
-          { id: 112, name: 'Trung tâm kinh doanh' },
-          { id: 113, name: 'Trung tâm hỗ trợ khách hàng' }
-        ]
-      },
-      {
-        id: 12,
-        name: 'Chi nhánh miền Nam',
-        items: [
-          { id: 121, name: 'Trung tâm kinh doanh' }
-        ]
-      }
-    ]
+const onCodeInput = () => {
+  isCodeManuallyEdited.value = true
+  validateCodeRealtime()
+}
+
+const hasVietnameseDiacritics = (str) => {
+  const diacriticsPattern = /[àáảãạăằắẳẵặâầấẩẫậđèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵ]/i
+  return diacriticsPattern.test(str)
+}
+
+const hasInvalidCharacters = (str) => {
+  const validPattern = /^[A-Za-z0-9_]*$/
+  return !validPattern.test(str)
+}
+
+const validateCodeRealtime = () => {
+  if (!formData.code) {
+    formErrors.code = ''
+    return
   }
-]
+
+  if (formData.code.includes(' ')) {
+    formErrors.code = 'Mã thành phần không được chứa khoảng trắng.'
+  } else if (hasVietnameseDiacritics(formData.code) || hasInvalidCharacters(formData.code)) {
+    formErrors.code = 'Mã thành phần chỉ có thể chứa các kí tự chữ (A-Z a-z), số (0-9) và gạch dưới (_).'
+  } else {
+    formErrors.code = ''
+  }
+}
+
+const formErrors = reactive({
+  name: '',
+  code: '',
+  type: '',
+  property: ''
+})
+
+const clearErrors = () => {
+  formErrors.name = ''
+  formErrors.code = ''
+  formErrors.type = ''
+  formErrors.property = ''
+}
+
+const validateForm = () => {
+  clearErrors()
+  let isValid = true
+
+  if (!formData.name?.trim()) {
+    formErrors.name = 'Không được để trống'
+    isValid = false
+  }
+
+  if (!formData.code?.trim()) {
+    formErrors.code = 'Không được để trống'
+    isValid = false
+  } else if (formData.code.includes(' ')) {
+    formErrors.code = 'Mã thành phần không được chứa khoảng trắng.'
+    isValid = false
+  } else if (hasVietnameseDiacritics(formData.code) || hasInvalidCharacters(formData.code)) {
+    formErrors.code = 'Mã thành phần chỉ có thể chứa các kí tự chữ (A-Z a-z), số (0-9) và gạch dưới (_).'
+    isValid = false
+  } else {
+    formData.code = formData.code.toUpperCase()
+  }
+
+  if (!formData.type) {
+    formErrors.type = 'Không được để trống'
+    isValid = false
+  }
+
+  if (!formData.property) {
+    formErrors.property = 'Không được để trống'
+    isValid = false
+  }
+
+  return isValid
+}
+
+onMounted(async () => {
+  await fetchTree()
+  if (isEdit.value) {
+    await fetchById(route.params.id)
+  }
+})
 
 const componentTypes = ref([
   { value: 'employee_info', label: 'Thông tin nhân viên' },
@@ -357,40 +451,34 @@ const getSourceLabel = computed(() => {
   return source ? source.label : 'Tự thêm'
 })
 
-const goBack = () => {
-  router.back()
-}
-
 const handleCancel = () => {
-  router.back()
+  goBack()
 }
 
-const handleSave = () => {
-  console.log('Save:', formData)
+const handleSave = async () => {
+  if (!validateForm()) {
+    return
+  }
+
+  try {
+    await save(route.params.id)
+    goBack()
+  } catch (err) {
+    console.error('Save error:', err)
+  }
 }
 
-const handleSaveAndAdd = () => {
-  console.log('Save and add:', formData)
-  Object.assign(formData, {
-    code: '',
-    name: '',
-    unitIds: [],
-    type: '',
-    property: 'income',
-    taxOption: 'taxable',
-    deductWhenCalculatingTax: false,
-    quota: '',
-    allowExceedQuota: false,
-    valueType: 'currency',
-    valueCalculation: 'formula',
-    sumScope: 'same_unit',
-    orgLevel: 'level_4',
-    salaryComponentToSum: '',
-    valueFormula: '',
-    description: '',
-    showOnPayslip: 'yes',
-    source: 'manual'
-  })
+const handleSaveAndAdd = async () => {
+  if (!validateForm()) {
+    return
+  }
+
+  try {
+    await saveAndNew()
+    clearErrors()
+  } catch (err) {
+    console.error('Save error:', err)
+  }
 }
 </script>
 

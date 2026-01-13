@@ -124,6 +124,5 @@ const onFocus = (event) => {
 .ms-input-error-message {
   font-size: 12px;
   color: #ff6161;
-  margin-top: 4px;
 }
 </style>

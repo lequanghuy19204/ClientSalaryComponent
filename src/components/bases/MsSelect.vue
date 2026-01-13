@@ -176,7 +176,6 @@ const onFocus = (event) => {
 .ms-select-error-message {
   font-size: 12px;
   color: #ff6161;
-  margin-top: 4px;
 }
 </style>
 

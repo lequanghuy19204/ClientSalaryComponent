@@ -134,18 +134,23 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseDataGrid from '@/components/bases/BaseDataGrid.vue'
 import MsButton from '@/components/bases/MsButton.vue'
 import MsInput from '@/components/bases/MsInput.vue'
 import MsSelect from '@/components/bases/MsSelect.vue'
 import MsTree from '@/components/bases/MsTree.vue'
+import salaryCompositionApi from '@/api/salary-composition.api'
+import { useOrganization } from '@/composables'
 
 const router = useRouter()
 
+const { tree: unitTreeData, fetchTree, flatList: orgFlatList } = useOrganization()
+
 const searchText = ref('')
 const selectedRows = ref([])
+const loading = ref(false)
 
 // Filter state
 const selectedStatus = ref(null)
@@ -155,38 +160,6 @@ const statusOptions = [
   { value: null, label: 'Tất cả trạng thái' },
   { value: 'active', label: 'Đang theo dõi' },
   { value: 'inactive', label: 'Ngừng theo dõi' }
-]
-
-const unitTreeData = [
-  {
-    id: 1,
-    name: 'Misa Test pdthien 2024',
-    items: [
-      {
-        id: 11,
-        name: 'Chi nhánh miền Bắc',
-        items: [
-          {
-            id: 111,
-            name: 'Khối sản xuất',
-            items: [
-              { id: 1111, name: 'Dự án Core' },
-              { id: 1112, name: 'Dự án C&B' }
-            ]
-          },
-          { id: 112, name: 'Trung tâm kinh doanh' },
-          { id: 113, name: 'Trung tâm hỗ trợ khách hàng' }
-        ]
-      },
-      {
-        id: 12,
-        name: 'Chi nhánh miền Nam',
-        items: [
-          { id: 121, name: 'Trung tâm kinh doanh' }
-        ]
-      }
-    ]
-  }
 ]
 
 // Table columns configuration
@@ -219,72 +192,169 @@ const pageSizeSelectOptions = [
   { value: 100, label: '100' }
 ]
 
-const salaryComponents = ref([
-  {
-    id: 1,
-    code: 'TPL001',
-    name: 'Lương cơ bản',
-    unit: 'Tất cả',
-    type: 'Thu nhập',
-    property: 'Chịu thuế'
-  },
-  {
-    id: 2,
-    code: 'TPL002',
-    name: 'Phụ cấp ăn trưa',
-    unit: 'Tất cả',
-    type: 'Thu nhập',
-    property: 'Không chịu thuế'
-  },
-  {
-    id: 3,
-    code: 'TPL003',
-    name: 'Phụ cấp đi lại',
-    unit: 'Tất cả',
-    type: 'Thu nhập',
-    property: 'Không chịu thuế'
-  },
-  {
-    id: 4,
-    code: 'TPL004',
-    name: 'Tổng giờ làm thêm hưởng lương không chịu thuế',
-    unit: 'Tất cả',
-    type: 'Thu nhập',
-    property: 'Không chịu thuế'
-  },
-  {
-    id: 5,
-    code: 'TPL005',
-    name: 'Tổng giờ làm thêm hưởng lương chịu thuế',
-    unit: 'Tất cả',
-    type: 'Thu nhập',
-    property: 'Chịu thuế'
-  },
-  {
-    id: 6,
-    code: 'TPL006',
-    name: 'Bảo hiểm xã hội',
-    unit: 'Tất cả',
-    type: 'Giảm trừ',
-    property: 'Giảm trừ'
-  },
-  {
-    id: 7,
-    code: 'TPL007',
-    name: 'Bảo hiểm y tế',
-    unit: 'Tất cả',
-    type: 'Giảm trừ',
-    property: 'Giảm trừ'
-  },
-  {
-    id: 8,
-    code: 'TPL008',
-    name: 'Thuế thu nhập cá nhân',
-    unit: 'Tất cả',
-    type: 'Giảm trừ',
-    property: 'Giảm trừ'
+const salaryComponents = ref([])
+
+// Map loại thành phần
+const typeMap = {
+  employee_info: 'Thông tin nhân viên',
+  attendance: 'Chấm công',
+  revenue: 'Doanh số',
+  kpi: 'KPI',
+  product: 'Sản phẩm',
+  salary: 'Lương',
+  pit: 'Thuế TNCN',
+  insurance_union: 'Bảo hiểm - Công đoàn',
+  other: 'Khác'
+}
+
+// Map tính chất
+const propertyMap = {
+  income: 'Thu nhập',
+  deduction: 'Khấu trừ',
+  other: 'Khác'
+}
+
+// Map tùy chọn thuế
+const taxOptionMap = {
+  taxable: 'Chịu thuế',
+  tax_exempt_full: 'Miễn thuế toàn phần',
+  tax_exempt_partial: 'Miễn thuế một phần'
+}
+
+// Map hiển thị trên phiếu lương
+const showOnPayslipMap = {
+  yes: 'Có',
+  no: 'Không',
+  if_not_zero: 'Chỉ hiển thị nếu giá trị khác 0'
+}
+
+// Map nguồn tạo
+const sourceMap = {
+  manual: 'Tự thêm',
+  system: 'Hệ thống'
+}
+
+// Map trạng thái
+const statusMap = {
+  1: 'Đang theo dõi',
+  0: 'Ngừng theo dõi'
+}
+
+// Map kiểu giá trị
+const valueTypeMap = {
+  number: 'Số',
+  currency: 'Tiền tệ',
+  percent: 'Phần trăm',
+  text: 'Chữ',
+  date: 'Ngày'
+}
+
+// Hàm lấy tên đơn vị hiển thị theo kiểu MsTree
+const getUnitDisplayNames = (unitIds) => {
+  if (!unitIds || unitIds.length === 0 || !orgFlatList.value?.length) {
+    return ''
   }
-])
+
+  const ids = new Set(unitIds.map(x => String(x)))
+  const byId = new Map()
+  const childrenByParent = new Map()
+
+  for (const raw of orgFlatList.value) {
+    const idStr = String(raw.id)
+    const parentIdStr = raw.parentId == null ? null : String(raw.parentId)
+    const nameStr = String(raw.name ?? '')
+    byId.set(idStr, { id: idStr, name: nameStr, parentId: parentIdStr })
+    if (!childrenByParent.has(parentIdStr)) childrenByParent.set(parentIdStr, [])
+    childrenByParent.get(parentIdStr).push(idStr)
+  }
+
+  // Tìm các cha mà tất cả con đều được chọn
+  const parentsToDisplay = new Set()
+  childrenByParent.forEach((childIds, parentId) => {
+    if (parentId == null) return
+    if (!childIds || childIds.length === 0) return
+    const parentSelected = ids.has(parentId)
+    const allChildrenSelected = childIds.every((cid) => ids.has(cid))
+    if (parentSelected || allChildrenSelected) parentsToDisplay.add(parentId)
+  })
+
+  // Kiểm tra tổ tiên
+  function hasAncestorInSet(nodeId, set) {
+    let cur = byId.get(nodeId)
+    while (cur && cur.parentId != null) {
+      if (set.has(cur.parentId)) return true
+      cur = byId.get(cur.parentId)
+    }
+    return false
+  }
+
+  // Lấy các cha cao nhất (không có tổ tiên trong set)
+  const effectiveParents = new Set()
+  parentsToDisplay.forEach((pid) => {
+    if (!hasAncestorInSet(pid, parentsToDisplay)) effectiveParents.add(pid)
+  })
+
+  // Kiểm tra node có được bao phủ bởi cha không
+  function isCoveredByDisplayedParent(nodeId) {
+    let cur = byId.get(nodeId)
+    while (cur && cur.parentId != null) {
+      if (effectiveParents.has(cur.parentId)) return true
+      cur = byId.get(cur.parentId)
+    }
+    return false
+  }
+
+  // Tập hợp các id cần hiển thị
+  const displayIds = new Set()
+  effectiveParents.forEach((pid) => displayIds.add(pid))
+  ids.forEach((sid) => {
+    if (!isCoveredByDisplayedParent(sid) && !displayIds.has(sid)) displayIds.add(sid)
+  })
+
+  // Lấy tên theo thứ tự trong flatList
+  const result = []
+  for (const raw of orgFlatList.value) {
+    const idStr = String(raw.id)
+    if (displayIds.has(idStr)) result.push(String(raw.name ?? ''))
+  }
+  return result.join(', ')
+}
+
+const mapDataForDisplay = (data) => {
+  return data.map(item => ({
+    ...item,
+    unit: getUnitDisplayNames(item.unitIds),
+    type: typeMap[item.type] || item.type,
+    property: propertyMap[item.property] || item.property,
+    taxable: taxOptionMap[item.taxOption] || item.taxOption || '',
+    taxDeduction: item.deductWhenCalculatingTax ? 'Có' : 'Không',
+    quota: item.quota || '',
+    valueType: valueTypeMap[item.valueType] || item.valueType || '',
+    value: item.valueFormula || '',
+    description: item.description || '',
+    showOnPayslip: showOnPayslipMap[item.showOnPayslip] || item.showOnPayslip || '',
+    source: sourceMap[item.source] || item.source || '',
+    status: statusMap[item.status] ?? item.status
+  }))
+}
+
+const fetchSalaryComponents = async () => {
+  loading.value = true
+  try {
+    const data = await salaryCompositionApi.getAll()
+    salaryComponents.value = mapDataForDisplay(data)
+    totalRecords.value = data.length
+  } catch (error) {
+    console.error('Error fetching salary components:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(async () => {
+  await fetchTree()
+  await fetchSalaryComponents()
+})
 
 const onSelectionChanged = (rows) => {
   selectedRows.value = rows
