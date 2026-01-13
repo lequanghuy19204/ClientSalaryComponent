@@ -1,13 +1,20 @@
 <script setup>
+import { ref } from 'vue'
 import TheHeader from './layouts/TheHeader.vue'
 import TheSidebar from './layouts/TheSidebar.vue'
+
+const isSidebarCollapsed = ref(false)
+
+const handleSidebarCollapse = (collapsed) => {
+  isSidebarCollapsed.value = collapsed
+}
 </script>
 
 <template>
   <div class="app">
     <TheHeader />
-    <TheSidebar />
-    <main class="app__main">
+    <TheSidebar @update:collapsed="handleSidebarCollapse" />
+    <main class="app__main" :class="{ 'sidebar-collapsed': isSidebarCollapsed }">
       <router-view />
     </main>
   </div>
@@ -35,6 +42,10 @@ body {
   padding-top: 48px; /* Height of header */
   padding-left: 220px; /* Width of sidebar */
   min-height: 100vh;
-  transition: padding-left 0.25s ease;
+  transition: padding-left 0.1s ease;
+}
+
+.app__main.sidebar-collapsed {
+  padding-left: 56px; /* Width of collapsed sidebar */
 }
 </style>

@@ -29,10 +29,16 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+
+const emit = defineEmits(['update:collapsed'])
 
 const activeId = ref('salary-composition')
 const isCollapsed = ref(false)
+
+watch(isCollapsed, (newValue) => {
+  emit('update:collapsed', newValue)
+})
 
 const menuItems = [
   { id: 'dashboard', icon: 'icon-sidebar-dashboard', text: 'Tổng quan' },

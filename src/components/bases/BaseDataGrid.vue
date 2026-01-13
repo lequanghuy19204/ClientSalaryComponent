@@ -375,14 +375,44 @@ const onSelectionChanged = (e) => {
   background: #e8f5e9 !important;
 }
 
+/* Custom checkbox icons */
+.base-table-wrapper .dx-checkbox-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .base-table-wrapper .dx-checkbox-icon {
-  width: 16px;
-  height: 16px;
+  width: 20px !important;
+  height: 20px !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -240px 0px !important;
+  background-color: transparent !important;
+}
+
+.base-table-wrapper .dx-checkbox-icon::before {
+  content: none !important;
+  display: none !important;
 }
 
 .base-table-wrapper .dx-checkbox-checked .dx-checkbox-icon {
-  background-color: #34b057;
-  border-color: #34b057;
+  background: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -260px 0px !important;
+  background-color: transparent !important;
+  border: none !important;
+}
+
+.base-table-wrapper .dx-checkbox-indeterminate .dx-checkbox-icon {
+  background: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -260px 0px !important;
+  background-color: transparent !important;
+  border: none !important;
+}
+
+.base-table-wrapper .dx-checkbox-has-text .dx-checkbox-icon {
+  margin-right: 0;
 }
 
 .base-table-wrapper .dx-datagrid .dx-column-lines > td {

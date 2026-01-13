@@ -29,8 +29,8 @@
 
     <!-- Content Card -->
     <div class="salary-component d-flex flex-column flex-grow-1 overflow-hidden bg-white rounded-1">
-      <!-- Filter Section -->
-      <div class="salary-filter d-flex align-items-center justify-content-between flex-shrink-0 bg-white">
+      <!-- Filter Section - Normal mode -->
+      <div v-if="selectedRows.length === 0" class="salary-filter d-flex align-items-center justify-content-between flex-shrink-0 bg-white">
         <!-- Search Input -->
         <div class="filter-search d-flex align-items-center overflow-hidden bg-white rounded-1">
           <div class="search-icon-wrapper d-flex align-items-center justify-content-center">
@@ -83,6 +83,40 @@
         </div>
       </div>
 
+      <!-- Selection Toolbar - When rows are selected -->
+      <div v-else class="selection-toolbar d-flex align-items-center justify-content-between flex-shrink-0 bg-white">
+        <div class="selection-info d-flex align-items-center">
+          <div class="d-flex align-items-center">
+            <span>Đã chọn</span>
+            <b class="selected-count">{{ selectedRows.length }}</b>
+          </div>
+          <span class="deselect-link" @click="clearSelection">Bỏ chọn</span>
+          <div class="selection-actions d-flex align-items-center gap-2">
+            <MsButton
+              label="Ngừng theo dõi"
+              icon="icon-mi-circle-minus-yellow"
+              variant="outline"
+              class="btn-action btn-stop"
+              @click="onBulkStop"
+            />
+            <MsButton
+              label="Đang theo dõi"
+              icon="icon-mi-circle-check-green"
+              variant="outline"
+              class="btn-action btn-active"
+              @click="onBulkActive"
+            />
+          </div>
+          <MsButton
+            label="Xóa"
+            icon="icon-mi-trash-red"
+            variant="outline"
+            class="btn-action btn-delete"
+            @click="onBulkDelete"
+          />
+        </div>
+      </div>
+
       <!-- Table Section - Using BaseDataGrid -->
       <BaseDataGrid
         :data-source="salaryComponents"
@@ -111,6 +145,7 @@ import MsTree from '@/components/bases/MsTree.vue'
 const router = useRouter()
 
 const searchText = ref('')
+const selectedRows = ref([])
 
 // Filter state
 const selectedStatus = ref(null)
@@ -156,11 +191,20 @@ const unitTreeData = [
 
 // Table columns configuration
 const tableColumns = [
-  { dataField: 'code', caption: 'Mã thành phần', width: 200, minWidth: 200 },
-  { dataField: 'name', caption: 'Tên thành phần', width: 280, minWidth: 200 },
-  { dataField: 'unit', caption: 'Đơn vị áp dụng', width: 200, minWidth: 200 },
-  { dataField: 'type', caption: 'Loại thành phần', width: 200, minWidth: 200 },
-  { dataField: 'property', caption: 'Tính chất', width: 200, minWidth: 200 }
+  { dataField: 'code', caption: 'Mã thành phần', width: 150, minWidth: 120 },
+  { dataField: 'name', caption: 'Tên thành phần', width: 250, minWidth: 200 },
+  { dataField: 'unit', caption: 'Đơn vị áp dụng', width: 150, minWidth: 120 },
+  { dataField: 'type', caption: 'Loại thành phần', width: 150, minWidth: 120 },
+  { dataField: 'property', caption: 'Tính chất', width: 120, minWidth: 100 },
+  { dataField: 'taxable', caption: 'Chịu thuế', width: 100, minWidth: 80 },
+  { dataField: 'taxDeduction', caption: 'Giảm trừ khi tính thuế', width: 180, minWidth: 150 },
+  { dataField: 'quota', caption: 'Định mức', width: 120, minWidth: 100 },
+  { dataField: 'valueType', caption: 'Kiểu giá trị', width: 120, minWidth: 100 },
+  { dataField: 'value', caption: 'Giá trị', width: 120, minWidth: 100 },
+  { dataField: 'description', caption: 'Mô tả', width: 200, minWidth: 150 },
+  { dataField: 'showOnPayslip', caption: 'Hiển thị trên phiếu lương', width: 180, minWidth: 150 },
+  { dataField: 'source', caption: 'Nguồn tạo', width: 120, minWidth: 100 },
+  { dataField: 'status', caption: 'Trạng thái', width: 120, minWidth: 100 }
 ]
 
 // Pagination state
@@ -242,8 +286,25 @@ const salaryComponents = ref([
   }
 ])
 
-const onSelectionChanged = (selectedRows) => {
-  console.log('Selected rows:', selectedRows)
+const onSelectionChanged = (rows) => {
+  selectedRows.value = rows
+  console.log('Selected rows:', rows)
+}
+
+const clearSelection = () => {
+  selectedRows.value = []
+}
+
+const onBulkStop = () => {
+  console.log('Bulk stop:', selectedRows.value)
+}
+
+const onBulkActive = () => {
+  console.log('Bulk active:', selectedRows.value)
+}
+
+const onBulkDelete = () => {
+  console.log('Bulk delete:', selectedRows.value)
 }
 
 const onAction = ({ action, data }) => {
@@ -359,5 +420,69 @@ const goToAddForm = () => {
   height: 36px;
   min-width: 36px;
   padding: 0;
+}
+
+/* Selection Toolbar */
+.selection-toolbar {
+  padding: 12px 20px;
+  height: 61px;
+}
+
+.selection-info {
+  gap: 16px;
+  font-size: 14px;
+  color: #212121;
+}
+
+.selected-count {
+  padding: 0 6px;
+  color: #212121;
+}
+
+.deselect-link {
+  color: #34b057;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.deselect-link:hover {
+  text-decoration: underline;
+}
+
+.selection-actions {
+  margin-left: 16px;
+}
+
+.btn-action :deep(.ms-btn) {
+  height: 36px;
+  padding: 0 16px 0 12px;
+  border-radius: 4px;
+}
+
+.btn-stop :deep(.ms-btn-outline) {
+  border-color: #e0e0e0;
+  background: #fff8e6;
+}
+
+.btn-stop :deep(.ms-btn-outline:hover) {
+  border-color: #f90;
+}
+
+.btn-active :deep(.ms-btn-outline) {
+  border-color: #e0e0e0;
+  background: #e6fff0;
+}
+
+.btn-active :deep(.ms-btn-outline:hover) {
+  border-color: #25b973;
+}
+
+.btn-delete :deep(.ms-btn-outline) {
+  border-color: #ff6161;
+  color: #ff6161;
+}
+
+.btn-delete :deep(.ms-btn-outline:hover) {
+  background: #fff0f0;
 }
 </style>
