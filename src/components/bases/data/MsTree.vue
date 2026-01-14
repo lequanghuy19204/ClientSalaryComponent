@@ -68,7 +68,7 @@
 import { ref, computed, watch } from 'vue'
 import DxDropDownBox from 'devextreme-vue/drop-down-box'
 import DxTreeView from 'devextreme-vue/tree-view'
-import MsInput from '@/components/bases/MsInput.vue'
+import MsInput from '@/components/bases/form/MsInput.vue'
 
 const props = defineProps({
   modelValue: {

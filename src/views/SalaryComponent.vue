@@ -146,11 +146,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import BaseDataGrid from '@/components/bases/BaseDataGrid.vue'
-import MsButton from '@/components/bases/MsButton.vue'
-import MsInput from '@/components/bases/MsInput.vue'
-import MsSelect from '@/components/bases/MsSelect.vue'
-import MsTree from '@/components/bases/MsTree.vue'
+import BaseDataGrid from '@/components/bases/data/BaseDataGrid.vue'
+import MsTree from '@/components/bases/data/MsTree.vue'
+import MsButton from '@/components/bases/ui/MsButton.vue'
+import MsInput from '@/components/bases/form/MsInput.vue'
+import MsSelect from '@/components/bases/form/MsSelect.vue'
 import salaryCompositionApi from '@/api/salary-composition.api'
 import { useOrganization } from '@/composables'
 

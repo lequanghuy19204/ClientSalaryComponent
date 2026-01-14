@@ -243,13 +243,13 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import MsInput from '@/components/bases/MsInput.vue'
-import MsTextarea from '@/components/bases/MsTextarea.vue'
-import MsSelect from '@/components/bases/MsSelect.vue'
-import MsTree from '@/components/bases/MsTree.vue'
-import MsRadioButton from '@/components/bases/MsRadioButton.vue'
-import MsCheckbox from '@/components/bases/MsCheckbox.vue'
-import MsButton from '@/components/bases/MsButton.vue'
+import MsInput from '@/components/bases/form/MsInput.vue'
+import MsTextarea from '@/components/bases/form/MsTextarea.vue'
+import MsSelect from '@/components/bases/form/MsSelect.vue'
+import MsRadioButton from '@/components/bases/form/MsRadioButton.vue'
+import MsCheckbox from '@/components/bases/form/MsCheckbox.vue'
+import MsTree from '@/components/bases/data/MsTree.vue'
+import MsButton from '@/components/bases/ui/MsButton.vue'
 import { useSalaryComposition, useOrganization } from '@/composables'
 
 const route = useRoute()

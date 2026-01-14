@@ -153,8 +153,8 @@
 <script setup>
 import { ref, computed, onBeforeUnmount } from 'vue'
 import { DxDataGrid, DxColumn, DxSelection, DxScrolling, DxPaging } from 'devextreme-vue/data-grid'
-import MsButton from '@/components/bases/MsButton.vue'
-import MsSelect from '@/components/bases/MsSelect.vue'
+import MsButton from '@/components/bases/ui/MsButton.vue'
+import MsSelect from '@/components/bases/form/MsSelect.vue'
 
 const props = defineProps({
   dataSource: {
