@@ -389,6 +389,9 @@ const onBulkDelete = () => {
 
 const onAction = ({ action, data }) => {
   console.log('Action:', action, 'Data:', data)
+  if (action === 'edit') {
+    router.push({ name: 'salary-component-edit', params: { id: data.id } })
+  }
 }
 
 const goToAddForm = () => {

@@ -11,12 +11,31 @@
           @click="goBack"
           title="Quay lại"
         />
-        <h2 class="form-title">{{ isEdit ? 'Sửa thành phần' : 'Thêm thành phần' }}</h2>
+        <h2 class="form-title" :title="isEdit ? formData.name : ''">{{ isEdit ? formData.name : 'Thêm thành phần' }}</h2>
       </div>
       <div class="header-right">
         <MsButton label="Hủy bỏ" variant="outline" @click="handleCancel" />
         <MsButton label="Lưu và thêm" variant="outline" @click="handleSaveAndAdd" v-if="!isEdit" />
         <MsButton label="Lưu" variant="primary" @click="handleSave" />
+        <div v-if="isEdit" class="more-dropdown-wrapper">
+          <MsButton
+            icon="icon-mi-threedot"
+            variant="outline"
+            class="btn-more"
+            title="Chức năng khác"
+            @click="toggleMoreMenu"
+          />
+          <ul v-show="showMoreMenu" class="more-dropdown-menu">
+            <li class="more-dropdown-item" @click="handleDuplicate">
+              <span class="icon icon-mi-copy"></span>
+              <span class="item-text">Nhân bản</span>
+            </li>
+            <li class="more-dropdown-item" @click="handleDelete">
+              <span class="icon icon-mi-trash-red"></span>
+              <span class="item-text text-red">Xóa</span>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
 
@@ -47,6 +66,7 @@
               class="w-full"
               placeholder="Nhập mã viết liền"
               :maxlength="255"
+              :disabled="isEdit"
               :has-error="!!formErrors.code"
               :error-message="formErrors.code"
               @input="onCodeInput"
@@ -241,8 +261,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import MsInput from '@/components/bases/form/MsInput.vue'
 import MsTextarea from '@/components/bases/form/MsTextarea.vue'
 import MsSelect from '@/components/bases/form/MsSelect.vue'
@@ -253,6 +273,8 @@ import MsButton from '@/components/bases/ui/MsButton.vue'
 import { useSalaryComposition, useOrganization } from '@/composables'
 
 const route = useRoute()
+// eslint-disable-next-line no-unused-vars
+const router = useRouter()
 
 const {
   form: formData,
@@ -267,6 +289,35 @@ const { tree: unitTreeData, fetchTree } = useOrganization()
 const isEdit = computed(() => !!route.params.id)
 
 const isCodeManuallyEdited = ref(false)
+const showMoreMenu = ref(false)
+
+const toggleMoreMenu = () => {
+  showMoreMenu.value = !showMoreMenu.value
+}
+
+const closeMoreMenu = (e) => {
+  if (!e.target.closest('.more-dropdown-wrapper')) {
+    showMoreMenu.value = false
+  }
+}
+
+const handleDuplicate = () => {
+  showMoreMenu.value = false
+  console.log('Duplicate:', formData)
+}
+
+const handleDelete = () => {
+  showMoreMenu.value = false
+  console.log('Delete:', route.params.id)
+}
+
+onMounted(() => {
+  document.addEventListener('click', closeMoreMenu)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeMoreMenu)
+})
 
 const removeVietnameseDiacritics = (str) => {
   const diacriticsMap = {
@@ -284,7 +335,7 @@ const removeVietnameseDiacritics = (str) => {
     'ư': 'u', 'ừ': 'u', 'ứ': 'u', 'ử': 'u', 'ữ': 'u', 'ự': 'u',
     'ỳ': 'y', 'ý': 'y', 'ỷ': 'y', 'ỹ': 'y', 'ỵ': 'y'
   }
-  
+
   return str
     .toLowerCase()
     .split('')
@@ -294,7 +345,7 @@ const removeVietnameseDiacritics = (str) => {
 
 const generateCodeFromName = (name) => {
   if (!name) return ''
-  
+
   return removeVietnameseDiacritics(name)
     .toUpperCase()
     .trim()
@@ -528,6 +579,66 @@ const handleSaveAndAdd = async () => {
   letter-spacing: 0.384px;
   line-height: 30px;
   margin: 0;
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* More Button */
+.btn-more {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  padding: 0;
+}
+
+/* More Dropdown */
+.more-dropdown-wrapper {
+  position: relative;
+}
+
+.more-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: #fff;
+  border-radius: 5px;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+  padding: 8px 6px;
+  list-style: none;
+  min-width: 140px;
+  z-index: 1000;
+}
+
+.more-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  line-height: 35px;
+}
+
+.more-dropdown-item:hover {
+  background: #f2f2f2;
+}
+
+.more-dropdown-item .icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.more-dropdown-item .item-text {
+  font-size: 14px;
+  color: #212121;
+}
+
+.more-dropdown-item .item-text.text-red {
+  color: #ff6161;
 }
 
 /* Form Content */
@@ -580,6 +691,7 @@ const handleSaveAndAdd = async () => {
 .form-input-right {
   flex: 1;
   max-width: 1104px;
+  line-height: normal;
 }
 
 /* Input wrapper max-width */
@@ -674,17 +786,9 @@ const handleSaveAndAdd = async () => {
 
 .form-unit-tree :deep(.ms-tree-wrapper) {
   width: 100%;
-  display: flex;
-  height: 34px;
 }
 
 .form-unit-tree :deep(.ms-tree) {
   width: 100%;
-  height: 34px;
-  min-height: 34px;
-}
-
-.form-unit-tree :deep(.ms-tree-display) {
-  line-height: 1;
 }
 </style>

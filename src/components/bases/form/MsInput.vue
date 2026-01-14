@@ -116,7 +116,7 @@ const onFocus = (event) => {
 }
 
 .ms-input-disabled :deep(.ms-input) {
-  background-color: #f5f5f5;
+  background-color: #e8eaef;
   cursor: not-allowed;
   opacity: 0.7;
 }
