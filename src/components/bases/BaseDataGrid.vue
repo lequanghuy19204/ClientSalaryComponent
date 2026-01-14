@@ -1,7 +1,8 @@
 <template>
   <div class="base-grid-container d-flex flex-column flex-grow-1 overflow-hidden">
-    <div class="base-table-wrapper flex-grow-1 overflow-hidden">
+    <div class="base-table-wrapper flex-grow-1 overflow-hidden" ref="tableWrapperRef">
       <DxDataGrid
+      ref="dataGridRef"
       :data-source="dataSource"
       :show-borders="false"
       :column-auto-width="false"
@@ -12,6 +13,7 @@
       :key-expr="keyExpr"
       height="100%"
       @selection-changed="onSelectionChanged"
+      @row-prepared="onRowPrepared"
     >
       <DxSelection
         v-if="selectable"
@@ -46,40 +48,24 @@
         :header-cell-template="col.headerCellTemplate"
       />
 
-      <!-- Fixed action column on right -->
+      <!-- Placeholder column for action buttons -->
       <DxColumn
         v-if="showActions"
         caption=""
         :width="actionColumnWidth"
         :min-width="actionColumnWidth"
         :allow-sorting="false"
-        :fixed="true"
-        fixed-position="right"
-        css-class="cell-column action-column"
-        cell-template="actionsTemplate"
+        css-class="cell-column action-placeholder-column"
+        cell-template="emptyTemplate"
         header-cell-template="emptyHeaderTemplate"
       />
 
-      <!-- Custom Templates -->
+      <!-- Empty templates -->
       <template #emptyHeaderTemplate>
         <span></span>
       </template>
-
-      <template #actionsTemplate="{ data }">
-        <div class="action-buttons d-flex align-items-center" :data-row-id="data.data[keyExpr]">
-          <slot name="actions" :data="data.data">
-            <!-- Default action buttons -->
-            <button
-              v-for="action in actionButtons"
-              :key="action.name"
-              class="action-btn d-flex align-items-center justify-content-center bg-transparent border-0 rounded-1"
-              :title="action.title"
-              @click="$emit('action', { action: action.name, data: data.data })"
-            >
-              <span :class="['icon', 'd-inline-block', 'flex-shrink-0', action.icon]"></span>
-            </button>
-          </slot>
-        </div>
+      <template #emptyTemplate>
+        <span></span>
       </template>
 
       <!-- Pass through custom cell templates via slots -->
@@ -91,7 +77,30 @@
 
       <DxPaging :enabled="false" />
     </DxDataGrid>
-  </div>
+
+      <!-- Floating Action Overlay -->
+      <div
+        v-if="showActions && hoveredRowData"
+        class="action-overlay"
+        :style="actionOverlayStyle"
+        @mouseenter="keepOverlayVisible"
+        @mouseleave="hideOverlay"
+      >
+        <div class="action-buttons d-flex align-items-center">
+          <slot name="actions" :data="hoveredRowData">
+            <button
+              v-for="action in actionButtons"
+              :key="action.name"
+              class="action-btn d-flex align-items-center justify-content-center bg-transparent border-0 rounded-1"
+              :title="action.title"
+              @click="$emit('action', { action: action.name, data: hoveredRowData })"
+            >
+              <span :class="['icon', 'd-inline-block', 'flex-shrink-0', action.icon]"></span>
+            </button>
+          </slot>
+        </div>
+      </div>
+    </div>
 
     <!-- Pagination -->
     <div v-if="showPagination" class="base-pagination d-flex align-items-center flex-shrink-0 position-relative">
@@ -142,7 +151,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onBeforeUnmount } from 'vue'
 import { DxDataGrid, DxColumn, DxSelection, DxScrolling, DxPaging } from 'devextreme-vue/data-grid'
 import MsButton from '@/components/bases/MsButton.vue'
 import MsSelect from '@/components/bases/MsSelect.vue'
@@ -214,6 +223,64 @@ const props = defineProps({
 
 const emit = defineEmits(['selection-changed', 'action', 'update:currentPage', 'update:pageSize', 'page-change', 'page-size-change'])
 
+// Refs
+const tableWrapperRef = ref(null)
+const dataGridRef = ref(null)
+
+// Floating action overlay state
+const hoveredRowData = ref(null)
+const hoveredRowTop = ref(0)
+const isOverlayHovered = ref(false)
+let hideTimeout = null
+
+const actionOverlayStyle = computed(() => ({
+  top: `${hoveredRowTop.value}px`,
+  right: '0px',
+  width: `${props.actionColumnWidth}px`
+}))
+
+// Row hover handlers
+const onRowPrepared = (e) => {
+  if (e.rowType === 'data') {
+    e.rowElement.addEventListener('mouseenter', () => onRowMouseEnter(e))
+    e.rowElement.addEventListener('mouseleave', onRowMouseLeave)
+  }
+}
+
+const onRowMouseEnter = (e) => {
+  if (hideTimeout) {
+    clearTimeout(hideTimeout)
+    hideTimeout = null
+  }
+  hoveredRowData.value = e.data
+  const rowRect = e.rowElement.getBoundingClientRect()
+  const wrapperRect = tableWrapperRef.value?.getBoundingClientRect()
+  if (wrapperRect) {
+    hoveredRowTop.value = rowRect.top - wrapperRect.top
+  }
+}
+
+const onRowMouseLeave = () => {
+  hideTimeout = setTimeout(() => {
+    if (!isOverlayHovered.value) {
+      hoveredRowData.value = null
+    }
+  }, 50)
+}
+
+const keepOverlayVisible = () => {
+  isOverlayHovered.value = true
+  if (hideTimeout) {
+    clearTimeout(hideTimeout)
+    hideTimeout = null
+  }
+}
+
+const hideOverlay = () => {
+  isOverlayHovered.value = false
+  hoveredRowData.value = null
+}
+
 // Pagination computed
 const totalPages = computed(() => Math.ceil(props.totalRecords / props.pageSize))
 const startRecord = computed(() => (props.currentPage - 1) * props.pageSize + 1)
@@ -249,12 +316,59 @@ const columnsWithTemplates = computed(() => {
 const onSelectionChanged = (e) => {
   emit('selection-changed', e.selectedRowsData)
 }
+
+onBeforeUnmount(() => {
+  if (hideTimeout) {
+    clearTimeout(hideTimeout)
+  }
+})
 </script>
 
 <style scoped>
 /* Table Section */
 .base-table-wrapper {
   min-height: 0;
+  border-top: 1px solid #e0e0e0;
+  background: linear-gradient(#f6f6f6 36px, #fff 0px);
+  position: relative;
+}
+
+/* Floating Action Overlay */
+.action-overlay {
+  position: absolute;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  background: linear-gradient(to right, transparent 0%, #eafbf2 20%, #eafbf2 100%);
+  padding-right: 8px;
+  z-index: 100;
+  pointer-events: auto;
+}
+
+.action-overlay .action-buttons {
+  opacity: 1;
+  gap: 0;
+}
+
+/* Custom scrollbar styling */
+.base-table-wrapper::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.base-table-wrapper::-webkit-scrollbar-track:vertical {
+  margin-top: 37px;
+  background: transparent;
+}
+
+.base-table-wrapper::-webkit-scrollbar-thumb {
+  background-color: #cdd3d6;
+  border-radius: 4px;
+}
+
+.base-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background-color: #aeb5b9;
 }
 
 /* Action Buttons */
@@ -277,10 +391,10 @@ const onSelectionChanged = (e) => {
 
 /* Pagination */
 .base-pagination {
-  padding: 10px 20px;
+  padding: 0 16px;
   background: #f6f6f6;
   border-top: 1px solid #e0e0e0;
-  height: 60px;
+  height: 56px;
   z-index: 8;
 }
 
@@ -337,10 +451,10 @@ const onSelectionChanged = (e) => {
 
 .base-table-wrapper .dx-datagrid-headers .dx-header-row td {
   font-weight: 700;
-  color: #212121;
+  color: #1f1f1f;
   padding: 0 16px;
   border: none;
-  border-bottom: 1px solid #ebebeb;
+  border-bottom: 1px solid #cfcfcf;
   line-height: 36px;
   vertical-align: middle;
   background: #f6f6f6 !important;
@@ -454,5 +568,53 @@ const onSelectionChanged = (e) => {
 .base-table-wrapper .dx-datagrid-rowsview .dx-row:hover .action-buttons,
 .base-table-wrapper .dx-datagrid-content-fixed .dx-row:hover .action-buttons {
   opacity: 1;
+}
+
+/* Sticky action column - overlay style like MsSalaryView */
+.base-table-wrapper .sticky-action-column {
+  position: sticky !important;
+  right: 0 !important;
+  z-index: 1;
+  background: #fff;
+}
+
+.base-table-wrapper .dx-datagrid-headers .sticky-action-column {
+  background: #f6f6f6 !important;
+  z-index: 11;
+}
+
+.base-table-wrapper .dx-datagrid-rowsview .dx-row:hover .sticky-action-column {
+  background: #eafbf2 !important;
+}
+
+/* Status Badge Styles */
+.base-table-wrapper .status-cell {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.base-table-wrapper .status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 8px;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.base-table-wrapper .status-indicator.active {
+  background: rgb(52, 176, 87);
+}
+
+.base-table-wrapper .status-indicator.inactive {
+  background: rgb(235, 87, 87);
+}
+
+.base-table-wrapper .status-text.active {
+  color: rgb(52, 176, 87);
+}
+
+.base-table-wrapper .status-text.inactive {
+  color: rgb(235, 87, 87);
 }
 </style>

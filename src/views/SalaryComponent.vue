@@ -128,7 +128,17 @@
         :page-size-options="pageSizeSelectOptions"
         @selection-changed="onSelectionChanged"
         @action="onAction"
-      />
+      >
+        <!-- Status column template -->
+        <template #statusTemplate="{ data }">
+          <div class="status-cell">
+            <div class="status-indicator" :class="data.data.status === 'Đang theo dõi' ? 'active' : 'inactive'"></div>
+            <span class="status-text" :class="data.data.status === 'Đang theo dõi' ? 'active' : 'inactive'">
+              {{ data.data.status }}
+            </span>
+          </div>
+        </template>
+      </BaseDataGrid>
     </div>
   </div>
 </template>
@@ -164,20 +174,20 @@ const statusOptions = [
 
 // Table columns configuration
 const tableColumns = [
-  { dataField: 'code', caption: 'Mã thành phần', width: 150, minWidth: 120 },
+  { dataField: 'code', caption: 'Mã thành phần', width: 250, minWidth: 120 },
   { dataField: 'name', caption: 'Tên thành phần', width: 250, minWidth: 200 },
-  { dataField: 'unit', caption: 'Đơn vị áp dụng', width: 150, minWidth: 120 },
-  { dataField: 'type', caption: 'Loại thành phần', width: 150, minWidth: 120 },
-  { dataField: 'property', caption: 'Tính chất', width: 120, minWidth: 100 },
-  { dataField: 'taxable', caption: 'Chịu thuế', width: 100, minWidth: 80 },
+  { dataField: 'unit', caption: 'Đơn vị áp dụng', width: 250, minWidth: 120 },
+  { dataField: 'type', caption: 'Loại thành phần', width: 250, minWidth: 120 },
+  { dataField: 'property', caption: 'Tính chất', width: 150, minWidth: 100 },
+  { dataField: 'taxable', caption: 'Chịu thuế', width: 200, minWidth: 100 },
   { dataField: 'taxDeduction', caption: 'Giảm trừ khi tính thuế', width: 180, minWidth: 150 },
   { dataField: 'quota', caption: 'Định mức', width: 120, minWidth: 100 },
   { dataField: 'valueType', caption: 'Kiểu giá trị', width: 120, minWidth: 100 },
   { dataField: 'value', caption: 'Giá trị', width: 120, minWidth: 100 },
   { dataField: 'description', caption: 'Mô tả', width: 200, minWidth: 150 },
-  { dataField: 'showOnPayslip', caption: 'Hiển thị trên phiếu lương', width: 180, minWidth: 150 },
+  { dataField: 'showOnPayslip', caption: 'Hiển thị trên phiếu lương', width: 200, minWidth: 150 },
   { dataField: 'source', caption: 'Nguồn tạo', width: 120, minWidth: 100 },
-  { dataField: 'status', caption: 'Trạng thái', width: 120, minWidth: 100 }
+  { dataField: 'status', caption: 'Trạng thái', width: 150, minWidth: 120, cellTemplate: 'statusTemplate' }
 ]
 
 // Pagination state
@@ -428,13 +438,13 @@ const goToAddForm = () => {
 
 /* Filter Section */
 .salary-filter {
-  padding: 12px 20px;
-  height: 61px;
+  padding: 16px 16px 12px 16px;
+  height: 64px;
 }
 
 /* Search Input */
 .filter-search {
-  width: 300px;
+  width: 240px;
   height: 36px;
   border: 1px solid #e0e0e0;
 }
@@ -494,8 +504,8 @@ const goToAddForm = () => {
 
 /* Selection Toolbar */
 .selection-toolbar {
-  padding: 12px 20px;
-  height: 61px;
+  padding: 16px 16px 12px 16px;
+  height: 64px;
 }
 
 .selection-info {
