@@ -1,5 +1,5 @@
 <template>
-  <div class="ms-select-wrapper" :class="{ 'ms-select-error': hasError, 'ms-select-disabled': disabled }">
+  <div class="ms-select-wrapper d-flex flex-column" :class="{ 'ms-select-error': hasError, 'ms-select-disabled': disabled }">
     <Select
       v-model="modelValue"
       :options="options"
@@ -100,11 +100,6 @@ const onFocus = (event) => {
 </script>
 
 <style scoped>
-.ms-select-wrapper {
-  display: flex;
-  flex-direction: column;
-}
-
 /* Size variants */
 :deep(.ms-select-small) {
   width: 110px;

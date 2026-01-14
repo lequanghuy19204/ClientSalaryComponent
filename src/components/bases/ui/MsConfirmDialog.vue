@@ -1,12 +1,12 @@
 <template>
   <Teleport to="body">
     <Transition name="ms-dialog-fade">
-      <div v-if="modelValue" class="ms-dialog-overlay" @click.self="onOverlayClick">
-        <div class="ms-dialog" :style="dialogStyle">
+      <div v-if="modelValue" class="ms-dialog-overlay position-fixed d-flex align-items-start justify-content-center" @click.self="onOverlayClick">
+        <div class="ms-dialog d-flex flex-column bg-white" :style="dialogStyle">
           <!-- Header -->
-          <header class="ms-dialog-header">
+          <header class="ms-dialog-header d-flex align-items-center justify-content-between">
             <h2 class="ms-dialog-title">{{ title }}</h2>
-            <button class="ms-dialog-close" @click="onCancel" :title="closeTooltip">
+            <button class="ms-dialog-close d-flex align-items-center justify-content-center" @click="onCancel" :title="closeTooltip">
               <span class="icon icon-mi-close"></span>
             </button>
           </header>
@@ -19,7 +19,7 @@
           </div>
 
           <!-- Footer -->
-          <footer class="ms-dialog-footer">
+          <footer class="ms-dialog-footer d-flex align-items-center justify-content-end gap-2">
             <MsButton
               :label="cancelText"
               variant="outline"
@@ -112,26 +112,19 @@ const onOverlayClick = () => {
 <style scoped>
 /* Overlay */
 .ms-dialog-overlay {
-  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
   padding-top: 7vh;
   z-index: 1000;
 }
 
 /* Dialog Container */
 .ms-dialog {
-  background: #fff;
   border-radius: 6px;
   box-shadow: 0 5px 20px 0 rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
   max-width: calc(100% - 30px);
   max-height: calc(100% - 30px);
   margin: 10px;
@@ -146,9 +139,6 @@ const onOverlayClick = () => {
 
 /* Header */
 .ms-dialog-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: 24px 24px 0px;
   height: 53px;
   flex-shrink: 0;
@@ -165,9 +155,6 @@ const onOverlayClick = () => {
 
 /* Close Button */
 .ms-dialog-close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 24px;
   height: 24px;
   border: none;
@@ -206,10 +193,6 @@ const onOverlayClick = () => {
 
 /* Footer */
 .ms-dialog-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
   padding: 16px 20px;
   height: 68px;
   flex-shrink: 0;

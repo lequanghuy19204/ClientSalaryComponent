@@ -1,8 +1,8 @@
 <template>
-  <div class="salary-form-page">
+  <div class="salary-form-page d-flex flex-column overflow-hidden">
     <!-- Header Section -->
-    <div class="form-header">
-      <div class="header-left">
+    <div class="form-header d-flex justify-content-between align-items-center flex-shrink-0">
+      <div class="d-flex align-items-center gap-2">
         <MsButton
           icon="icon-arrow-left"
           variant="text"
@@ -11,13 +11,13 @@
           @click="goBack"
           title="Quay lại"
         />
-        <h2 class="form-title" :title="isEdit ? formData.name : ''">{{ isEdit ? formData.name : 'Thêm thành phần' }}</h2>
+        <h2 class="form-title overflow-hidden" :title="isEdit ? formData.name : ''">{{ isEdit ? formData.name : 'Thêm thành phần' }}</h2>
       </div>
-      <div class="header-right">
+      <div class="d-flex align-items-center gap-2">
         <MsButton label="Hủy bỏ" variant="outline" @click="handleCancel" />
         <MsButton label="Lưu và thêm" variant="outline" @click="handleSaveAndAdd" v-if="!isEdit" />
         <MsButton label="Lưu" variant="primary" @click="handleSave" />
-        <div v-if="isEdit" class="more-dropdown-wrapper">
+        <div v-if="isEdit" class="more-dropdown-wrapper position-relative">
           <MsButton
             icon="icon-mi-threedot"
             variant="outline"
@@ -25,13 +25,13 @@
             title="Chức năng khác"
             @click="toggleMoreMenu"
           />
-          <ul v-show="showMoreMenu" class="more-dropdown-menu">
-            <li class="more-dropdown-item" @click="handleDuplicate">
-              <span class="icon icon-mi-copy"></span>
+          <ul v-show="showMoreMenu" class="more-dropdown-menu position-absolute bg-white">
+            <li class="more-dropdown-item d-flex align-items-center gap-2" @click="handleDuplicate">
+              <span class="icon icon-mi-copy flex-shrink-0"></span>
               <span class="item-text">Nhân bản</span>
             </li>
-            <li class="more-dropdown-item" @click="handleDelete">
-              <span class="icon icon-mi-trash-red"></span>
+            <li class="more-dropdown-item d-flex align-items-center gap-2" @click="handleDelete">
+              <span class="icon icon-mi-trash-red flex-shrink-0"></span>
               <span class="item-text text-red">Xóa</span>
             </li>
           </ul>
@@ -40,11 +40,11 @@
     </div>
 
     <!-- Form Content -->
-    <div class="form-content">
+    <div class="form-content flex-grow-1 overflow-auto bg-white rounded-1">
       <div class="form-body" ref="formBodyRef" @keydown.enter="focusNextInput">
         <!-- Row 1: Tên thành phần -->
-        <div class="form-row">
-          <label class="form-label-left required"><b>Tên thành phần</b></label>
+        <div class="form-row d-flex align-items-center">
+          <label class="form-label-left required flex-shrink-0"><b>Tên thành phần</b></label>
           <div class="form-input-right">
             <MsInput
               v-model="formData.name"
@@ -58,8 +58,8 @@
         </div>
 
         <!-- Row 2: Mã thành phần -->
-        <div class="form-row">
-          <label class="form-label-left required"><b>Mã thành phần</b></label>
+        <div class="form-row d-flex align-items-center">
+          <label class="form-label-left required flex-shrink-0"><b>Mã thành phần</b></label>
           <div class="form-input-right">
             <MsInput
               v-model="formData.code"
@@ -75,8 +75,8 @@
         </div>
 
         <!-- Row 3: Đơn vị áp dụng -->
-        <div class="form-row">
-          <label class="form-label-left"><b>Đơn vị áp dụng</b></label>
+        <div class="form-row d-flex align-items-center">
+          <label class="form-label-left flex-shrink-0"><b>Đơn vị áp dụng</b></label>
           <div class="form-input-right">
             <MsTree
               v-model="formData.unitIds"
@@ -91,8 +91,8 @@
         </div>
 
         <!-- Row 4: Loại thành phần -->
-        <div class="form-row">
-          <label class="form-label-left required"><b>Loại thành phần</b></label>
+        <div class="form-row d-flex align-items-center">
+          <label class="form-label-left required flex-shrink-0"><b>Loại thành phần</b></label>
           <div class="form-input-right">
             <MsSelect
               v-model="formData.type"
@@ -106,9 +106,9 @@
         </div>
 
         <!-- Row 5: Tính chất -->
-        <div class="form-row">
-          <label class="form-label-left required"><b>Tính chất</b></label>
-          <div class="form-input-right flex-row">
+        <div class="form-row d-flex align-items-center">
+          <label class="form-label-left required flex-shrink-0"><b>Tính chất</b></label>
+          <div class="form-input-right d-flex align-items-center gap-3">
             <MsSelect
               v-model="formData.property"
               :options="properties"
@@ -118,13 +118,13 @@
               :error-message="formErrors.property"
             />
             <!-- Thu nhập: 3 radio buttons -->
-            <div class="tax-options" v-if="formData.property === 'income'">
+            <div class="tax-options d-flex align-items-center flex-shrink-0" v-if="formData.property === 'income'">
               <MsRadioButton v-model="formData.taxOption" value="taxable" label="Chịu thuế" />
               <MsRadioButton v-model="formData.taxOption" value="tax_exempt_full" label="Miễn thuế toàn phần" />
               <MsRadioButton v-model="formData.taxOption" value="tax_exempt_partial" label="Miễn thuế một phần" />
             </div>
             <!-- Khấu trừ: 1 checkbox -->
-            <div class="tax-options" v-else-if="formData.property === 'deduction'">
+            <div class="tax-options d-flex align-items-center flex-shrink-0" v-else-if="formData.property === 'deduction'">
               <MsCheckbox v-model="formData.deductWhenCalculatingTax" label="Giảm trừ khi tính thuế" />
             </div>
             <!-- Khác: không hiển thị gì -->
@@ -132,8 +132,8 @@
         </div>
 
         <!-- Row 6: Định mức (ẩn khi chọn Khác) -->
-        <div class="form-row" v-if="formData.property !== 'other'">
-          <label class="form-label-left"><b>Định mức</b></label>
+        <div class="form-row d-flex align-items-center" v-if="formData.property !== 'other'">
+          <label class="form-label-left flex-shrink-0"><b>Định mức</b></label>
           <div class="form-input-right">
             <MsTextarea
               v-model="formData.quota"
@@ -145,10 +145,10 @@
         </div>
 
         <!-- Row 7: Checkbox cho phép vượt định mức (ẩn khi chọn Khác) -->
-        <div class="form-row" v-if="formData.property !== 'other'">
-          <label class="form-label-left"></label>
+        <div class="form-row d-flex align-items-center" v-if="formData.property !== 'other'">
+          <label class="form-label-left flex-shrink-0"></label>
           <div class="form-input-right">
-            <div class="checkbox-group">
+            <div class="d-flex align-items-center gap-2">
               <MsCheckbox v-model="formData.allowExceedQuota" label="Cho phép giá trị tính vượt quá định mức" />
               <i class="pi pi-info-circle info-icon" v-tooltip.top="'Thông tin thêm'"></i>
             </div>
@@ -156,8 +156,8 @@
         </div>
 
         <!-- Row 8: Kiểu giá trị -->
-        <div class="form-row">
-          <label class="form-label-left"><b>Kiểu giá trị</b></label>
+        <div class="form-row d-flex align-items-center">
+          <label class="form-label-left flex-shrink-0"><b>Kiểu giá trị</b></label>
           <div class="form-input-right">
             <MsSelect
               v-model="formData.valueType"
@@ -169,12 +169,12 @@
         </div>
 
         <!-- Row 9: Giá trị -->
-        <div class="form-row align-top">
-          <label class="form-label-left"><b>Giá trị</b></label>
+        <div class="form-row align-top d-flex">
+          <label class="form-label-left flex-shrink-0"><b>Giá trị</b></label>
           <div class="form-input-right">
-            <div class="value-options">
+            <div class="d-flex flex-column gap-3">
               <!-- Option 1: Tự động cộng tổng -->
-              <div class="value-option">
+              <div class="value-option d-flex align-items-center gap-3">
                 <MsRadioButton
                   v-model="formData.valueCalculation"
                   value="auto_sum"
@@ -197,7 +197,7 @@
                 />
               </div>
               <!-- Select thành phần lương khi chọn auto_sum -->
-              <div class="value-option" v-if="formData.valueCalculation === 'auto_sum'">
+              <div class="value-option d-flex align-items-center gap-3" v-if="formData.valueCalculation === 'auto_sum'">
                 <MsSelect
                   v-model="formData.salaryComponentToSum"
                   :options="salaryComponentOptions"
@@ -207,13 +207,13 @@
                 />
               </div>
               <!-- Option 2: Tính theo công thức -->
-              <div class="value-option">
+              <div class="value-option d-flex align-items-center gap-3">
                 <MsRadioButton
                   v-model="formData.valueCalculation"
                   value="formula"
                   label="Tính theo công thức tự đặt"
                 />
-                <div class="formula-container" v-if="formData.valueCalculation === 'formula'">
+                <div class="formula-container position-relative w-100" v-if="formData.valueCalculation === 'formula'">
                   <MsTextarea
                     v-model="formData.valueFormula"
                     placeholder="Tự động gợi ý công thức và tham số khi gõ"
@@ -227,8 +227,8 @@
         </div>
 
         <!-- Row 10: Mô tả -->
-        <div class="form-row">
-          <label class="form-label-left"><b>Mô tả</b></label>
+        <div class="form-row d-flex align-items-center">
+          <label class="form-label-left flex-shrink-0"><b>Mô tả</b></label>
           <div class="form-input-right">
             <MsTextarea
               v-model="formData.description"
@@ -239,9 +239,9 @@
         </div>
 
         <!-- Row 11: Hiển thị trên phiếu lương -->
-        <div class="form-row">
-          <label class="form-label-left"><b>Hiển thị trên phiếu lương</b></label>
-          <div class="form-input-right flex-row">
+        <div class="form-row d-flex align-items-center">
+          <label class="form-label-left flex-shrink-0"><b>Hiển thị trên phiếu lương</b></label>
+          <div class="form-input-right d-flex align-items-center gap-3">
             <MsRadioButton v-model="formData.showOnPayslip" value="yes" label="Có" />
             <MsRadioButton v-model="formData.showOnPayslip" value="no" label="Không" />
             <MsRadioButton v-model="formData.showOnPayslip" value="if_not_zero" label="Chỉ hiển thị nếu giá trị khác 0" />
@@ -249,8 +249,8 @@
         </div>
 
         <!-- Row 12: Nguồn tạo -->
-        <div class="form-row">
-          <label class="form-label-left"><b>Nguồn tạo</b></label>
+        <div class="form-row d-flex align-items-center">
+          <label class="form-label-left flex-shrink-0"><b>Nguồn tạo</b></label>
           <div class="form-input-right">
             <span class="source-text">{{ getSourceLabel }}</span>
           </div>
@@ -592,30 +592,11 @@ const handleSaveAndAdd = async () => {
 /* Page Container */
 .salary-form-page {
   height: calc(100vh - 48px);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
 }
 
 /* Header Section */
 .form-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding: 0 0 16px 0;
-  flex-shrink: 0;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 /* Back Button */
@@ -634,7 +615,6 @@ const handleSaveAndAdd = async () => {
   line-height: 30px;
   margin: 0;
   max-width: 400px;
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -648,16 +628,10 @@ const handleSaveAndAdd = async () => {
 }
 
 /* More Dropdown */
-.more-dropdown-wrapper {
-  position: relative;
-}
-
 .more-dropdown-menu {
-  position: absolute;
   top: 100%;
   right: 0;
   margin-top: 4px;
-  background: #fff;
   border-radius: 5px;
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
   padding: 8px 6px;
@@ -667,9 +641,6 @@ const handleSaveAndAdd = async () => {
 }
 
 .more-dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   padding: 0px 12px;
   cursor: pointer;
   border-radius: 4px;
@@ -683,7 +654,6 @@ const handleSaveAndAdd = async () => {
 .more-dropdown-item .icon {
   width: 20px;
   height: 20px;
-  flex-shrink: 0;
 }
 
 .more-dropdown-item .item-text {
@@ -697,10 +667,6 @@ const handleSaveAndAdd = async () => {
 
 /* Form Content */
 .form-content {
-  flex-grow: 1;
-  overflow: auto;
-  background: #fff;
-  border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   font-size: 14px;
 }
@@ -712,10 +678,8 @@ const handleSaveAndAdd = async () => {
 
 /* Form Row */
 .form-row {
-  display: flex;
   margin-bottom: 16px;
   line-height: 36px;
-  align-items: center;
 }
 
 .form-row.align-top {
@@ -729,7 +693,6 @@ const handleSaveAndAdd = async () => {
 /* Form Label Left */
 .form-label-left {
   width: 186px;
-  flex-shrink: 0;
   font-size: 14px;
   font-weight: 400;
   color: #212121;
@@ -755,30 +718,14 @@ const handleSaveAndAdd = async () => {
   max-width: 674px;
 }
 
-.form-input-right.flex-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
 .w-full {
   width: 100%;
 }
 
-/* Checkbox Group */
-.checkbox-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 /* Tax Options */
 .tax-options {
-  display: flex;
-  align-items: center;
   gap: 24px;
   margin-left: 16px;
-  flex-shrink: 0;
   white-space: nowrap;
 }
 
@@ -787,24 +734,13 @@ const handleSaveAndAdd = async () => {
   min-height: 70px;
 }
 
-/* Value Options */
-.value-options {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
+/* Value Option */
 .value-option {
-  display: flex;
-  align-items: center;
-  gap: 16px;
   flex-wrap: wrap;
 }
 
 /* Formula Container */
 .formula-container {
-  position: relative;
-  width: 100%;
   margin-top: 8px;
 }
 

@@ -1,13 +1,13 @@
 <template>
   <div
-    class="ms-radio"
+    class="ms-radio d-inline-flex align-items-center gap-2"
     :class="{
       'ms-radio-checked': isChecked,
       'ms-radio-disabled': disabled
     }"
     @click="select"
   >
-    <div class="ms-radio-box">
+    <div class="ms-radio-box d-flex align-items-center justify-content-center">
       <span
         class="icon d-inline-block"
         :class="isChecked ? 'icon-mi-radio-button-check' : 'icon-mi-radio-button-uncheck'"
@@ -57,9 +57,6 @@ const select = () => {
 
 <style scoped>
 .ms-radio {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
   cursor: pointer;
   user-select: none;
 }
@@ -70,9 +67,6 @@ const select = () => {
 }
 
 .ms-radio-box {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 20px;
   height: 20px;
 }

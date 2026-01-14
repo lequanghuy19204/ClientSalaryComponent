@@ -1,5 +1,5 @@
 <template>
-  <div class="ms-textarea-wrapper" :class="{ 'ms-textarea-error': hasError, 'ms-textarea-disabled': disabled }">
+  <div class="ms-textarea-wrapper d-flex flex-column w-100" :class="{ 'ms-textarea-error': hasError, 'ms-textarea-disabled': disabled }">
     <Textarea
       v-model="modelValue"
       :placeholder="placeholder"
@@ -80,12 +80,6 @@ const onFocus = (event) => {
 </script>
 
 <style scoped>
-.ms-textarea-wrapper {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
 :deep(.ms-textarea) {
   font-size: 14px;
   font-family: 'Inter', sans-serif;

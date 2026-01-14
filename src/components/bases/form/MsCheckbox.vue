@@ -1,13 +1,13 @@
 <template>
   <div
-    class="ms-checkbox"
+    class="ms-checkbox d-inline-flex align-items-center gap-2"
     :class="{
       'ms-checkbox-checked': modelValue,
       'ms-checkbox-disabled': disabled
     }"
     @click="toggle"
   >
-    <div class="ms-checkbox-box">
+    <div class="ms-checkbox-box d-flex align-items-center justify-content-center">
       <span
         class="icon d-inline-block"
         :class="modelValue ? 'icon-mi-square-check-primary' : 'icon-mi-square-default'"
@@ -51,9 +51,6 @@ const toggle = () => {
 
 <style scoped>
 .ms-checkbox {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
   cursor: pointer;
   user-select: none;
 }
@@ -64,9 +61,6 @@ const toggle = () => {
 }
 
 .ms-checkbox-box {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 20px;
   height: 20px;
 }

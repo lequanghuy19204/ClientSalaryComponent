@@ -1,5 +1,5 @@
 <template>
-  <div class="ms-input-wrapper" :class="{ 'ms-input-error': hasError, 'ms-input-disabled': disabled }">
+  <div class="ms-input-wrapper d-flex flex-column w-100" :class="{ 'ms-input-error': hasError, 'ms-input-disabled': disabled }">
     <InputText
       v-model="modelValue"
       :placeholder="placeholder"
@@ -75,12 +75,6 @@ const onFocus = (event) => {
 </script>
 
 <style scoped>
-.ms-input-wrapper {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
 :deep(.ms-input) {
   height: 34px;
   font-size: 14px;

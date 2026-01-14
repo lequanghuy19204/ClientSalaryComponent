@@ -1,12 +1,12 @@
 <template>
   <Teleport to="body">
-    <TransitionGroup name="ms-toast" tag="div" class="ms-toast-container">
+    <TransitionGroup name="ms-toast" tag="div" class="ms-toast-container position-fixed d-flex flex-column align-items-center">
       <div
         v-for="toast in toasts"
         :key="toast.id"
-        :class="['ms-toast', `ms-toast-${toast.type}`]"
+        :class="['ms-toast d-flex align-items-center', `ms-toast-${toast.type}`]"
       >
-        <div class="ms-toast-icon">
+        <div class="ms-toast-icon d-flex align-items-center justify-content-center">
           <i :class="['ms-icon', getIconClass(toast.type)]"></i>
         </div>
         <div class="ms-toast-content">
@@ -35,21 +35,15 @@ const getIconClass = (type) => {
 
 <style scoped>
 .ms-toast-container {
-  position: fixed;
   top: 70px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999999999;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   gap: 8px;
   pointer-events: none;
 }
 
 .ms-toast {
-  display: flex;
-  align-items: center;
   height: 40px;
   padding: 0 12px 0 0;
   border-radius: 4px;
@@ -66,9 +60,6 @@ const getIconClass = (type) => {
 }
 
 .ms-toast-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 40px;
   height: 40px;
   flex-shrink: 0;
