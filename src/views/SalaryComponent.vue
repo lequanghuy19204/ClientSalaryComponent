@@ -1,63 +1,75 @@
 <template>
   <div class="salary-page d-flex flex-column overflow-hidden">
-    <!-- Header Section (nằm ngoài card) -->
-    <div class="salary-header d-flex justify-content-between align-items-center flex-shrink-0">
-      <h1 class="salary-title">Thành phần lương</h1>
-      <div class="salary-toolbar d-flex align-items-center gap-2">
-        <!-- Thiết lập công thức button -->
-        <MsButton
-          label="Danh mục của hệ thống"
-          icon="icon-mi-rule"
-          variant="outline"
-        />
-        <!-- Thêm mới button -->
-        <div class="btn-group d-flex">
+    <!-- Form View -->
+    <SalaryComponentForm
+      v-if="showForm"
+      :mode="formMode"
+      :edit-id="editId"
+      @back="onFormBack"
+      @saved="onFormSaved"
+      @deleted="onFormDeleted"
+    />
+
+    <!-- List View -->
+    <template v-else>
+      <!-- Header Section (nằm ngoài card) -->
+      <div class="salary-header d-flex justify-content-between align-items-center flex-shrink-0">
+        <h1 class="salary-title">Thành phần lương</h1>
+        <div class="salary-toolbar d-flex align-items-center gap-2">
+          <!-- Thiết lập công thức button -->
           <MsButton
-            label="Thêm mới"
-            icon="icon-mi-plus-white"
-            variant="primary"
-            @click="goToAddForm"
+            label="Danh mục của hệ thống"
+            icon="icon-mi-rule"
+            variant="outline"
           />
-          <MsButton
-            icon="icon-down-white"
-            variant="primary"
-            class="btn-dropdown"
-          />
+          <!-- Thêm mới button -->
+          <div class="btn-group d-flex">
+            <MsButton
+              label="Thêm mới"
+              icon="icon-mi-plus-white"
+              variant="primary"
+              @click="goToAddForm"
+            />
+            <MsButton
+              icon="icon-down-white"
+              variant="primary"
+              class="btn-dropdown"
+            />
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Content Card -->
-    <div class="salary-component d-flex flex-column flex-grow-1 overflow-hidden bg-white rounded-1">
-      <!-- Filter Section - Normal mode -->
-      <div v-if="selectedRows.length === 0" class="salary-filter d-flex align-items-center justify-content-between flex-shrink-0 bg-white">
-        <!-- Search Input -->
-        <div class="filter-search d-flex align-items-center overflow-hidden bg-white rounded-1">
-          <div class="search-icon-wrapper d-flex align-items-center justify-content-center">
-            <span class="icon d-inline-block flex-shrink-0 icon-search"></span>
+      <!-- Content Card -->
+      <div class="salary-component d-flex flex-column flex-grow-1 overflow-hidden bg-white rounded-1">
+        <!-- Filter Section - Normal mode -->
+        <div v-if="selectedRows.length === 0" class="salary-filter d-flex align-items-center justify-content-between flex-shrink-0 bg-white">
+          <!-- Search Input -->
+          <div class="filter-search d-flex align-items-center overflow-hidden bg-white rounded-1">
+            <div class="search-icon-wrapper d-flex align-items-center justify-content-center">
+              <span class="icon d-inline-block flex-shrink-0 icon-search"></span>
+            </div>
+            <MsInput
+              v-model="searchText"
+              placeholder="Tìm kiếm"
+              class="search-input-wrapper"
+            />
           </div>
-          <MsInput
-            v-model="searchText"
-            placeholder="Tìm kiếm"
-            class="search-input-wrapper"
-          />
-        </div>
 
-        <!-- Filter Controls -->
-        <div class="filter-controls d-flex align-items-center gap-2">
-          <!-- Tất cả trạng thái -->
-          <MsSelect
-            v-model="selectedStatus"
-            :options="statusOptions"
-            placeholder="Tất cả trạng thái"
-            size="small"
-            class="filter-status-select"
-          />
+          <!-- Filter Controls -->
+          <div class="filter-controls d-flex align-items-center gap-2">
+            <!-- Tất cả trạng thái -->
+            <MsSelect
+              v-model="selectedStatus"
+              :options="statusOptions"
+              placeholder="Tất cả trạng thái"
+              size="small"
+              class="filter-status-select"
+            />
 
-          <!-- Tất cả đơn vị -->
-          <MsTree
-            v-model="selectedUnits"
-            :data-source="unitTreeData"
+            <!-- Tất cả đơn vị -->
+            <MsTree
+              v-model="selectedUnits"
+              :data-source="unitTreeData"
             key-expr="id"
             display-expr="name"
             placeholder="Tất cả đơn vị"
@@ -119,6 +131,7 @@
 
       <!-- Table Section - Using BaseDataGrid -->
       <BaseDataGrid
+        ref="dataGridRef"
         :data-source="salaryComponents"
         :columns="tableColumns"
         key-expr="id"
@@ -140,27 +153,51 @@
         </template>
       </BaseDataGrid>
     </div>
+    </template>
   </div>
+
+  <!-- Delete Confirmation Dialog -->
+  <MsConfirmDialog
+    v-model="showDeleteDialog"
+    title="Thông báo"
+    :message="`Bạn có chắc chắn muốn xóa thành phần lương <strong>${deleteTarget?.name || ''}</strong> không?`"
+    confirm-text="Xóa"
+    cancel-text="Hủy"
+    confirm-variant="danger"
+    :loading="isDeleting"
+    @confirm="confirmDelete"
+  />
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, nextTick } from 'vue'
 import BaseDataGrid from '@/components/bases/data/BaseDataGrid.vue'
 import MsTree from '@/components/bases/data/MsTree.vue'
 import MsButton from '@/components/bases/ui/MsButton.vue'
 import MsInput from '@/components/bases/form/MsInput.vue'
 import MsSelect from '@/components/bases/form/MsSelect.vue'
+import MsConfirmDialog from '@/components/bases/ui/MsConfirmDialog.vue'
+import SalaryComponentForm from '@/views/SalaryComponentForm.vue'
 import salaryCompositionApi from '@/api/salary-composition.api'
-import { useOrganization } from '@/composables'
-
-const router = useRouter()
+import { useOrganization, useToast } from '@/composables'
 
 const { tree: unitTreeData, fetchTree, flatList: orgFlatList } = useOrganization()
+const toast = useToast()
+
+// Form toggle state
+const showForm = ref(false)
+const formMode = ref('add')
+const editId = ref(null)
 
 const searchText = ref('')
 const selectedRows = ref([])
 const loading = ref(false)
+const dataGridRef = ref(null)
+
+// Delete confirmation dialog state
+const showDeleteDialog = ref(false)
+const deleteTarget = ref(null)
+const isDeleting = ref(false)
 
 // Filter state
 const selectedStatus = ref(null)
@@ -373,6 +410,7 @@ const onSelectionChanged = (rows) => {
 
 const clearSelection = () => {
   selectedRows.value = []
+  dataGridRef.value?.clearSelection()
 }
 
 const onBulkStop = () => {
@@ -383,19 +421,81 @@ const onBulkActive = () => {
   console.log('Bulk active:', selectedRows.value)
 }
 
-const onBulkDelete = () => {
-  console.log('Bulk delete:', selectedRows.value)
+const onBulkDelete = async () => {
+  if (selectedRows.value.length === 0) return
+
+  try {
+    const deletePromises = selectedRows.value.map(row => salaryCompositionApi.delete(row.id))
+    await Promise.all(deletePromises)
+    toast.success('Xóa thành công')
+    clearSelection()
+    await fetchSalaryComponents()
+  } catch (error) {
+    console.error('Error deleting salary components:', error)
+    toast.error('Có lỗi xảy ra')
+  }
 }
 
-const onAction = ({ action, data }) => {
-  console.log('Action:', action, 'Data:', data)
+const onAction = async ({ action, data }) => {
   if (action === 'edit') {
-    router.push({ name: 'salary-component-edit', params: { id: data.id } })
+    formMode.value = 'edit'
+    editId.value = data.id
+    showForm.value = true
+  } else if (action === 'duplicate') {
+    formMode.value = 'duplicate'
+    editId.value = data.id
+    showForm.value = true
+  } else if (action === 'delete') {
+    deleteTarget.value = data
+    showDeleteDialog.value = true
+  }
+}
+
+const confirmDelete = async () => {
+  if (!deleteTarget.value) return
+  
+  isDeleting.value = true
+  try {
+    await salaryCompositionApi.delete(deleteTarget.value.id)
+    toast.success('Xóa thành công')
+    showDeleteDialog.value = false
+    deleteTarget.value = null
+    await fetchSalaryComponents()
+  } catch (error) {
+    console.error('Error deleting salary component:', error)
+    toast.error('Có lỗi xảy ra')
+  } finally {
+    isDeleting.value = false
   }
 }
 
 const goToAddForm = () => {
-  router.push({ name: 'salary-component-add' })
+  formMode.value = 'add'
+  editId.value = null
+  showForm.value = true
+}
+
+const onFormBack = async (payload) => {
+  if (payload?.action === 'duplicate') {
+    // Force remount form by hiding then showing
+    showForm.value = false
+    await nextTick()
+    formMode.value = 'duplicate'
+    editId.value = payload.id
+    showForm.value = true
+  } else {
+    showForm.value = false
+    formMode.value = 'add'
+    editId.value = null
+  }
+}
+
+const onFormSaved = async () => {
+  await fetchSalaryComponents()
+}
+
+const onFormDeleted = async () => {
+  await fetchSalaryComponents()
 }
 </script>
 

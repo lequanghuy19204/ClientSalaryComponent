@@ -317,6 +317,14 @@ const onSelectionChanged = (e) => {
   emit('selection-changed', e.selectedRowsData)
 }
 
+const clearSelection = () => {
+  dataGridRef.value?.instance?.clearSelection()
+}
+
+defineExpose({
+  clearSelection
+})
+
 onBeforeUnmount(() => {
   if (hideTimeout) {
     clearTimeout(hideTimeout)

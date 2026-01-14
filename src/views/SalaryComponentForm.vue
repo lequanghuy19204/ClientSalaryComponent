@@ -41,7 +41,7 @@
 
     <!-- Form Content -->
     <div class="form-content">
-      <div class="form-body">
+      <div class="form-body" ref="formBodyRef" @keydown.enter="focusNextInput">
         <!-- Row 1: Tên thành phần -->
         <div class="form-row">
           <label class="form-label-left required"><b>Tên thành phần</b></label>
@@ -262,7 +262,6 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import MsInput from '@/components/bases/form/MsInput.vue'
 import MsTextarea from '@/components/bases/form/MsTextarea.vue'
 import MsSelect from '@/components/bases/form/MsSelect.vue'
@@ -270,26 +269,56 @@ import MsRadioButton from '@/components/bases/form/MsRadioButton.vue'
 import MsCheckbox from '@/components/bases/form/MsCheckbox.vue'
 import MsTree from '@/components/bases/data/MsTree.vue'
 import MsButton from '@/components/bases/ui/MsButton.vue'
-import { useSalaryComposition, useOrganization } from '@/composables'
+import { useSalaryComposition, useOrganization, useToast } from '@/composables'
 
-const route = useRoute()
-// eslint-disable-next-line no-unused-vars
-const router = useRouter()
+const props = defineProps({
+  mode: {
+    type: String,
+    default: 'add',
+    validator: (value) => ['add', 'edit', 'duplicate'].includes(value)
+  },
+  editId: {
+    type: [String, Number],
+    default: null
+  }
+})
+
+const emit = defineEmits(['back', 'saved', 'deleted'])
 
 const {
   form: formData,
   fetchById,
   save,
   saveAndNew,
-  goBack
+  remove,
+  resetForm
 } = useSalaryComposition()
 
 const { tree: unitTreeData, fetchTree } = useOrganization()
 
-const isEdit = computed(() => !!route.params.id)
+const toast = useToast()
+
+const isEdit = computed(() => props.mode === 'edit')
+const isDuplicate = computed(() => props.mode === 'duplicate')
 
 const isCodeManuallyEdited = ref(false)
 const showMoreMenu = ref(false)
+const formBodyRef = ref(null)
+
+const focusNextInput = (e) => {
+  if (e.target.tagName === 'TEXTAREA') return
+  
+  e.preventDefault()
+  const focusableElements = formBodyRef.value?.querySelectorAll(
+    'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])'
+  )
+  if (!focusableElements) return
+  
+  const currentIndex = Array.from(focusableElements).indexOf(e.target)
+  if (currentIndex !== -1 && currentIndex < focusableElements.length - 1) {
+    focusableElements[currentIndex + 1].focus()
+  }
+}
 
 const toggleMoreMenu = () => {
   showMoreMenu.value = !showMoreMenu.value
@@ -301,14 +330,28 @@ const closeMoreMenu = (e) => {
   }
 }
 
-const handleDuplicate = () => {
-  showMoreMenu.value = false
-  console.log('Duplicate:', formData)
+const goBack = () => {
+  emit('back')
 }
 
-const handleDelete = () => {
+const handleDuplicate = () => {
   showMoreMenu.value = false
-  console.log('Delete:', route.params.id)
+  emit('back', { action: 'duplicate', id: props.editId })
+}
+
+const handleDelete = async () => {
+  showMoreMenu.value = false
+  if (!props.editId) return
+
+  try {
+    await remove(props.editId)
+    toast.success('Xóa thành công')
+    emit('deleted')
+    emit('back')
+  } catch (error) {
+    console.error('Error deleting salary component:', error)
+    toast.error('Có lỗi xảy ra')
+  }
 }
 
 onMounted(() => {
@@ -440,8 +483,15 @@ const validateForm = () => {
 
 onMounted(async () => {
   await fetchTree()
-  if (isEdit.value) {
-    await fetchById(route.params.id)
+  if (isEdit.value && props.editId) {
+    await fetchById(props.editId)
+  } else if (isDuplicate.value && props.editId) {
+    await fetchById(props.editId)
+    formData.code = ''
+    formData.name = ''
+    isCodeManuallyEdited.value = false
+  } else {
+    resetForm()
   }
 })
 
@@ -512,10 +562,13 @@ const handleSave = async () => {
   }
 
   try {
-    await save(route.params.id)
+    await save(isEdit.value ? props.editId : null)
+    toast.success(isEdit.value ? 'Cập nhật thành phần lương thành công' : 'Thêm thành công')
+    emit('saved')
     goBack()
   } catch (err) {
     console.error('Save error:', err)
+    toast.error('Có lỗi xảy ra')
   }
 }
 
@@ -526,9 +579,11 @@ const handleSaveAndAdd = async () => {
 
   try {
     await saveAndNew()
+    toast.success('Thêm thành công')
     clearErrors()
   } catch (err) {
     console.error('Save error:', err)
+    toast.error('Có lỗi xảy ra')
   }
 }
 </script>
@@ -536,7 +591,6 @@ const handleSaveAndAdd = async () => {
 <style scoped>
 /* Page Container */
 .salary-form-page {
-  padding: 16px 24px;
   height: calc(100vh - 48px);
   display: flex;
   flex-direction: column;

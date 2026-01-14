@@ -1,0 +1,43 @@
+import { ref } from 'vue'
+
+const toasts = ref([])
+let toastId = 0
+
+const DEFAULT_DURATION = 3000
+
+const addToast = (message, type = 'info', duration = DEFAULT_DURATION) => {
+  const id = ++toastId
+  toasts.value.push({ id, message, type })
+
+  if (duration > 0) {
+    setTimeout(() => {
+      removeToast(id)
+    }, duration)
+  }
+
+  return id
+}
+
+const removeToast = (id) => {
+  const index = toasts.value.findIndex((t) => t.id === id)
+  if (index > -1) {
+    toasts.value.splice(index, 1)
+  }
+}
+
+const success = (message, duration) => addToast(message, 'success', duration)
+const error = (message, duration) => addToast(message, 'error', duration)
+const warning = (message, duration) => addToast(message, 'warning', duration)
+const info = (message, duration) => addToast(message, 'info', duration)
+
+export const useToast = () => {
+  return {
+    toasts,
+    addToast,
+    removeToast,
+    success,
+    error,
+    warning,
+    info
+  }
+}

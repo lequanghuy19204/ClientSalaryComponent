@@ -329,6 +329,16 @@
   height: 20px;
 }
 
+.icon-mi-close {
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -280px 0;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -280px 0;
+  width: 20px;
+  height: 20px;
+  background-color: #6e737a !important;
+}
+
 .icon-mi-close-small {
   background: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
     no-repeat -140px -80px;
@@ -341,4 +351,14 @@
     no-repeat -160px -40px;
   width: 20px;
   height: 20px;
+}
+
+.icon-mi-alert-success {
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -180px -40px;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -180px -40px;
+  width: 20px;
+  height: 20px;
+  background-color: #fff !important;
 }
