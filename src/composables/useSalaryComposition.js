@@ -11,27 +11,27 @@ export function useSalaryComposition() {
   const selected = ref(null)
 
   const defaultFormData = {
-    code: '',
-    name: '',
-    unitIds: [],
-    type: '',
-    property: 'income',
-    taxOption: 'taxable',
-    deductWhenCalculatingTax: false,
-    quota: '',
-    allowExceedQuota: false,
-    valueType: 'currency',
-    valueCalculation: 'formula',
-    sumScope: 'same_unit',
-    orgLevel: 'level_4',
-    salaryComponentToSum: '',
-    valueFormula: '',
-    description: '',
-    showOnPayslip: 'yes',
-    source: 'manual',
-    status: 1,
-    taxablePart: '',
-    taxExemptPart: ''
+    salaryCompositionCode: '',
+    salaryCompositionName: '',
+    organizationIds: [],
+    salaryCompositionType: '',
+    salaryCompositionNature: 'income',
+    salaryCompositionTaxOption: 'taxable',
+    salaryCompositionTaxDeduction: false,
+    salaryCompositionQuota: '',
+    salaryCompositionAllowExceedQuota: false,
+    salaryCompositionValueType: 'currency',
+    salaryCompositionValueCalculation: 'formula',
+    salaryCompositionSumScope: 'same_unit',
+    salaryCompositionOrgLevel: 'level_4',
+    salaryCompositionComponentToSum: '',
+    salaryCompositionValueFormula: '',
+    salaryCompositionDescription: '',
+    salaryCompositionShowOnPayslip: 'yes',
+    salaryCompositionSource: 'manual',
+    salaryCompositionStatus: 1,
+    salaryCompositionTaxablePart: '',
+    salaryCompositionTaxExemptPart: ''
   }
 
   const form = reactive({ ...defaultFormData })
@@ -51,27 +51,27 @@ export function useSalaryComposition() {
     return withLoading(async () => {
       const data = await salaryCompositionApi.getById(id)
       Object.assign(form, {
-        code: data.code,
-        name: data.name,
-        unitIds: data.unitIds || [],
-        type: data.type,
-        property: data.property,
-        taxOption: data.taxOption,
-        deductWhenCalculatingTax: data.deductWhenCalculatingTax,
-        quota: data.quota || '',
-        allowExceedQuota: data.allowExceedQuota,
-        valueType: data.valueType,
-        valueCalculation: data.valueCalculation,
-        sumScope: data.sumScope || 'same_unit',
-        orgLevel: data.orgLevel || 'level_4',
-        salaryComponentToSum: data.salaryComponentToSum || '',
-        valueFormula: data.valueFormula || '',
-        description: data.description || '',
-        showOnPayslip: data.showOnPayslip,
-        source: data.source,
-        status: data.status ?? 1,
-        taxablePart: data.taxablePart || '',
-        taxExemptPart: data.taxExemptPart || ''
+        salaryCompositionCode: data.salaryCompositionCode,
+        salaryCompositionName: data.salaryCompositionName,
+        organizationIds: data.organizationIds || [],
+        salaryCompositionType: data.salaryCompositionType,
+        salaryCompositionNature: data.salaryCompositionNature,
+        salaryCompositionTaxOption: data.salaryCompositionTaxOption,
+        salaryCompositionTaxDeduction: data.salaryCompositionTaxDeduction,
+        salaryCompositionQuota: data.salaryCompositionQuota || '',
+        salaryCompositionAllowExceedQuota: data.salaryCompositionAllowExceedQuota,
+        salaryCompositionValueType: data.salaryCompositionValueType,
+        salaryCompositionValueCalculation: data.salaryCompositionValueCalculation,
+        salaryCompositionSumScope: data.salaryCompositionSumScope || 'same_unit',
+        salaryCompositionOrgLevel: data.salaryCompositionOrgLevel || 'level_4',
+        salaryCompositionComponentToSum: data.salaryCompositionComponentToSum || '',
+        salaryCompositionValueFormula: data.salaryCompositionValueFormula || '',
+        salaryCompositionDescription: data.salaryCompositionDescription || '',
+        salaryCompositionShowOnPayslip: data.salaryCompositionShowOnPayslip,
+        salaryCompositionSource: data.salaryCompositionSource,
+        salaryCompositionStatus: data.salaryCompositionStatus ?? 1,
+        salaryCompositionTaxablePart: data.salaryCompositionTaxablePart || '',
+        salaryCompositionTaxExemptPart: data.salaryCompositionTaxExemptPart || ''
       })
       selected.value = data
       return data
@@ -96,63 +96,63 @@ export function useSalaryComposition() {
 
   const prepareDataForSubmit = () => {
     const data = {
-      code: form.code,
-      name: form.name,
-      unitIds: form.unitIds,
-      type: form.type,
-      property: form.property,
-      valueType: form.valueType,
-      valueCalculation: form.valueCalculation,
-      description: form.description,
-      showOnPayslip: form.showOnPayslip,
-      source: form.source,
-      status: form.status
+      salaryCompositionCode: form.salaryCompositionCode,
+      salaryCompositionName: form.salaryCompositionName,
+      organizationIds: form.organizationIds,
+      salaryCompositionType: form.salaryCompositionType,
+      salaryCompositionNature: form.salaryCompositionNature,
+      salaryCompositionValueType: form.salaryCompositionValueType,
+      salaryCompositionValueCalculation: form.salaryCompositionValueCalculation,
+      salaryCompositionDescription: form.salaryCompositionDescription,
+      salaryCompositionShowOnPayslip: form.salaryCompositionShowOnPayslip,
+      salaryCompositionSource: form.salaryCompositionSource,
+      salaryCompositionStatus: form.salaryCompositionStatus
     }
 
-    // 1. sumScope, orgLevel, salaryComponentToSum - chỉ gửi khi valueCalculation = 'auto_sum'
-    if (form.valueCalculation === 'auto_sum') {
-      data.sumScope = form.sumScope
-      data.orgLevel = form.sumScope === 'org_structure' ? form.orgLevel : null
-      data.salaryComponentToSum = form.salaryComponentToSum
-      data.valueFormula = null
+    // 1. sumScope, orgLevel, componentToSum - chỉ gửi khi valueCalculation = 'auto_sum'
+    if (form.salaryCompositionValueCalculation === 'auto_sum') {
+      data.salaryCompositionSumScope = form.salaryCompositionSumScope
+      data.salaryCompositionOrgLevel = form.salaryCompositionSumScope === 'org_structure' ? form.salaryCompositionOrgLevel : null
+      data.salaryCompositionComponentToSum = form.salaryCompositionComponentToSum
+      data.salaryCompositionValueFormula = null
     } else {
-      data.sumScope = null
-      data.orgLevel = null
-      data.salaryComponentToSum = null
-      data.valueFormula = form.valueFormula
+      data.salaryCompositionSumScope = null
+      data.salaryCompositionOrgLevel = null
+      data.salaryCompositionComponentToSum = null
+      data.salaryCompositionValueFormula = form.salaryCompositionValueFormula
     }
 
-    // 2. taxOption - chỉ gửi khi property = 'income'
-    if (form.property === 'income') {
-      data.taxOption = form.taxOption
+    // 2. taxOption - chỉ gửi khi nature = 'income'
+    if (form.salaryCompositionNature === 'income') {
+      data.salaryCompositionTaxOption = form.salaryCompositionTaxOption
       // taxablePart, taxExemptPart - chỉ gửi khi taxOption = 'tax_exempt_partial'
-      if (form.taxOption === 'tax_exempt_partial') {
-        data.taxablePart = form.taxablePart
-        data.taxExemptPart = form.taxExemptPart
+      if (form.salaryCompositionTaxOption === 'tax_exempt_partial') {
+        data.salaryCompositionTaxablePart = form.salaryCompositionTaxablePart
+        data.salaryCompositionTaxExemptPart = form.salaryCompositionTaxExemptPart
       } else {
-        data.taxablePart = null
-        data.taxExemptPart = null
+        data.salaryCompositionTaxablePart = null
+        data.salaryCompositionTaxExemptPart = null
       }
     } else {
-      data.taxOption = null
-      data.taxablePart = null
-      data.taxExemptPart = null
+      data.salaryCompositionTaxOption = null
+      data.salaryCompositionTaxablePart = null
+      data.salaryCompositionTaxExemptPart = null
     }
 
-    // 3. deductWhenCalculatingTax - chỉ gửi khi property = 'deduction'
-    if (form.property === 'deduction') {
-      data.deductWhenCalculatingTax = form.deductWhenCalculatingTax
+    // 3. taxDeduction - chỉ gửi khi nature = 'deduction'
+    if (form.salaryCompositionNature === 'deduction') {
+      data.salaryCompositionTaxDeduction = form.salaryCompositionTaxDeduction
     } else {
-      data.deductWhenCalculatingTax = false
+      data.salaryCompositionTaxDeduction = false
     }
 
-    // 4. quota, allowExceedQuota - chỉ gửi khi property !== 'other'
-    if (form.property !== 'other') {
-      data.quota = form.quota
-      data.allowExceedQuota = form.allowExceedQuota
+    // 4. quota, allowExceedQuota - chỉ gửi khi nature !== 'other'
+    if (form.salaryCompositionNature !== 'other') {
+      data.salaryCompositionQuota = form.salaryCompositionQuota
+      data.salaryCompositionAllowExceedQuota = form.salaryCompositionAllowExceedQuota
     } else {
-      data.quota = null
-      data.allowExceedQuota = false
+      data.salaryCompositionQuota = null
+      data.salaryCompositionAllowExceedQuota = false
     }
 
     return data
@@ -161,7 +161,7 @@ export function useSalaryComposition() {
   const remove = async (id) => {
     return withLoading(async () => {
       await salaryCompositionApi.delete(id)
-      list.value = list.value.filter(item => item.id !== id)
+      list.value = list.value.filter(item => item.salaryCompositionId !== id)
       return true
     })
   }
@@ -194,16 +194,16 @@ export function useSalaryComposition() {
   const validate = () => {
     const errors = {}
 
-    if (!form.name?.trim()) {
-      errors.name = 'Tên thành phần không được để trống'
+    if (!form.salaryCompositionName?.trim()) {
+      errors.salaryCompositionName = 'Tên thành phần không được để trống'
     }
 
-    if (!form.code?.trim()) {
-      errors.code = 'Mã thành phần không được để trống'
+    if (!form.salaryCompositionCode?.trim()) {
+      errors.salaryCompositionCode = 'Mã thành phần không được để trống'
     }
 
-    if (!form.type) {
-      errors.type = 'Loại thành phần không được để trống'
+    if (!form.salaryCompositionType) {
+      errors.salaryCompositionType = 'Loại thành phần không được để trống'
     }
 
     return {

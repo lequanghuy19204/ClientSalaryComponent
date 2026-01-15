@@ -11,8 +11,8 @@
           @click="checkUnsavedAndGoBack"
           title="Quay lại"
         />
-        <h2 class="form-title overflow-hidden" :title="isEdit ? formData.name : ''">
-          {{ isEdit ? formData.name : 'Thêm thành phần' }}
+        <h2 class="form-title overflow-hidden" :title="isEdit ? formData.salaryCompositionName : ''">
+          {{ isEdit ? formData.salaryCompositionName : 'Thêm thành phần' }}
         </h2>
       </div>
       <div class="d-flex align-items-center gap-2">
@@ -49,12 +49,12 @@
           <label class="form-label-left required flex-shrink-0"><b>Tên thành phần</b></label>
           <div class="form-input-right">
             <MsInput
-              v-model="formData.name"
+              v-model="formData.salaryCompositionName"
               class="w-full"
               :maxlength="255"
               :autofocus="true"
-              :has-error="!!formErrors.name"
-              :error-message="formErrors.name"
+              :has-error="!!formErrors.salaryCompositionName"
+              :error-message="formErrors.salaryCompositionName"
             />
           </div>
         </div>
@@ -64,13 +64,13 @@
           <label class="form-label-left required flex-shrink-0"><b>Mã thành phần</b></label>
           <div class="form-input-right">
             <MsInput
-              v-model="formData.code"
+              v-model="formData.salaryCompositionCode"
               class="w-full"
               placeholder="Nhập mã viết liền"
               :maxlength="255"
               :disabled="isEdit"
-              :has-error="!!formErrors.code"
-              :error-message="formErrors.code"
+              :has-error="!!formErrors.salaryCompositionCode"
+              :error-message="formErrors.salaryCompositionCode"
               @input="onCodeInput"
             />
           </div>
@@ -81,10 +81,10 @@
           <label class="form-label-left flex-shrink-0"><b>Đơn vị áp dụng</b></label>
           <div class="form-input-right">
             <MsTree
-              v-model="formData.unitIds"
+              v-model="formData.organizationIds"
               :data-source="unitTreeData"
-              key-expr="id"
-              display-expr="name"
+              key-expr="organizationId"
+              display-expr="organizationName"
               placeholder=""
               :max-selected-labels="3"
               class="form-unit-tree"
@@ -97,12 +97,12 @@
           <label class="form-label-left required flex-shrink-0"><b>Loại thành phần</b></label>
           <div class="form-input-right">
             <MsSelect
-              v-model="formData.type"
+              v-model="formData.salaryCompositionType"
               :options="componentTypes"
               placeholder=""
               size="medium"
-              :has-error="!!formErrors.type"
-              :error-message="formErrors.type"
+              :has-error="!!formErrors.salaryCompositionType"
+              :error-message="formErrors.salaryCompositionType"
             />
           </div>
         </div>
@@ -112,26 +112,26 @@
           <label class="form-label-left required flex-shrink-0"><b>Tính chất</b></label>
           <div class="form-input-right d-flex align-items-center gap-3">
             <MsSelect
-              v-model="formData.property"
+              v-model="formData.salaryCompositionNature"
               :options="properties"
               placeholder="Chọn tính chất"
               size="medium"
-              :has-error="!!formErrors.property"
-              :error-message="formErrors.property"
+              :has-error="!!formErrors.salaryCompositionNature"
+              :error-message="formErrors.salaryCompositionNature"
             />
             <!-- Thu nhập: 3 radio buttons -->
             <div
               class="tax-options d-flex align-items-center flex-shrink-0"
-              v-if="formData.property === 'income'"
+              v-if="formData.salaryCompositionNature === 'income'"
             >
-              <MsRadioButton v-model="formData.taxOption" value="taxable" label="Chịu thuế" />
+              <MsRadioButton v-model="formData.salaryCompositionTaxOption" value="taxable" label="Chịu thuế" />
               <MsRadioButton
-                v-model="formData.taxOption"
+                v-model="formData.salaryCompositionTaxOption"
                 value="tax_exempt_full"
                 label="Miễn thuế toàn phần"
               />
               <MsRadioButton
-                v-model="formData.taxOption"
+                v-model="formData.salaryCompositionTaxOption"
                 value="tax_exempt_partial"
                 label="Miễn thuế một phần"
               />
@@ -139,10 +139,10 @@
             <!-- Khấu trừ: 1 checkbox -->
             <div
               class="tax-options d-flex align-items-center flex-shrink-0"
-              v-else-if="formData.property === 'deduction'"
+              v-else-if="formData.salaryCompositionNature === 'deduction'"
             >
               <MsCheckbox
-                v-model="formData.deductWhenCalculatingTax"
+                v-model="formData.salaryCompositionTaxDeduction"
                 label="Giảm trừ khi tính thuế"
               />
             </div>
@@ -151,11 +151,11 @@
         </div>
 
         <!-- Row 6: Định mức (ẩn khi chọn Khác) -->
-        <div class="form-row d-flex align-items-center" v-if="formData.property !== 'other'">
+        <div class="form-row d-flex align-items-center" v-if="formData.salaryCompositionNature !== 'other'">
           <label class="form-label-left flex-shrink-0"><b>Định mức</b></label>
           <div class="form-input-right">
             <MsTextarea
-              v-model="formData.quota"
+              v-model="formData.salaryCompositionQuota"
               placeholder="Tự động gợi ý công thức và tham số khi gõ"
               :rows="2"
               class="w-full formula-editor"
@@ -164,12 +164,12 @@
         </div>
 
         <!-- Row 7: Checkbox cho phép vượt định mức (ẩn khi chọn Khác) -->
-        <div class="form-row d-flex align-items-center" v-if="formData.property !== 'other'">
+        <div class="form-row d-flex align-items-center" v-if="formData.salaryCompositionNature !== 'other'">
           <label class="form-label-left flex-shrink-0"></label>
           <div class="form-input-right">
             <div class="d-flex align-items-center gap-2">
               <MsCheckbox
-                v-model="formData.allowExceedQuota"
+                v-model="formData.salaryCompositionAllowExceedQuota"
                 label="Cho phép giá trị tính vượt quá định mức"
               />
               <i class="pi pi-info-circle info-icon" v-tooltip.top="'Thông tin thêm'"></i>
@@ -182,9 +182,9 @@
           <label class="form-label-left flex-shrink-0"><b>Kiểu giá trị</b></label>
           <div class="form-input-right">
             <MsSelect
-              v-model="formData.valueType"
+              v-model="formData.salaryCompositionValueType"
               :options="valueTypes"
-              :disabled="formData.property !== 'other'"
+              :disabled="formData.salaryCompositionNature !== 'other'"
               size="medium"
             />
           </div>
@@ -198,33 +198,33 @@
               <!-- Option 1: Tự động cộng tổng -->
               <div class="value-option d-flex align-items-center gap-3">
                 <MsRadioButton
-                  v-model="formData.valueCalculation"
+                  v-model="formData.salaryCompositionValueCalculation"
                   value="auto_sum"
                   label="Tự động cộng tổng giá trị của các nhân viên"
                 />
                 <MsSelect
-                  v-model="formData.sumScope"
+                  v-model="formData.salaryCompositionSumScope"
                   :options="sumScopeOptions"
-                  :disabled="formData.valueCalculation !== 'auto_sum'"
+                  :disabled="formData.salaryCompositionValueCalculation !== 'auto_sum'"
                   size="medium"
                   class="ml-4"
                 />
                 <!-- Cấp cơ cấu tổ chức -->
                 <MsSelect
-                  v-if="formData.sumScope === 'org_structure'"
-                  v-model="formData.orgLevel"
+                  v-if="formData.salaryCompositionSumScope === 'org_structure'"
+                  v-model="formData.salaryCompositionOrgLevel"
                   :options="orgLevelOptions"
-                  :disabled="formData.valueCalculation !== 'auto_sum'"
+                  :disabled="formData.salaryCompositionValueCalculation !== 'auto_sum'"
                   size="small"
                 />
               </div>
               <!-- Select thành phần lương khi chọn auto_sum -->
               <div
                 class="value-option d-flex align-items-center gap-3"
-                v-if="formData.valueCalculation === 'auto_sum'"
+                v-if="formData.salaryCompositionValueCalculation === 'auto_sum'"
               >
                 <MsSelect
-                  v-model="formData.salaryComponentToSum"
+                  v-model="formData.salaryCompositionComponentToSum"
                   :options="salaryComponentOptions"
                   placeholder="Chọn thành phần lương để cộng giá trị"
                   size="large"
@@ -234,16 +234,16 @@
               <!-- Option 2: Tính theo công thức -->
               <div class="value-option d-flex align-items-center gap-3">
                 <MsRadioButton
-                  v-model="formData.valueCalculation"
+                  v-model="formData.salaryCompositionValueCalculation"
                   value="formula"
                   label="Tính theo công thức tự đặt"
                 />
                 <div
                   class="formula-container position-relative w-100"
-                  v-if="formData.valueCalculation === 'formula'"
+                  v-if="formData.salaryCompositionValueCalculation === 'formula'"
                 >
                   <MsTextarea
-                    v-model="formData.valueFormula"
+                    v-model="formData.salaryCompositionValueFormula"
                     placeholder="Tự động gợi ý công thức và tham số khi gõ"
                     :rows="2"
                     class="w-full formula-editor"
@@ -254,14 +254,14 @@
               <!-- Phần chịu thuế / miễn thuế (chỉ hiển thị khi chọn miễn thuế một phần) -->
               <div
                 class="tax-partial-section"
-                v-if="formData.property === 'income' && formData.taxOption === 'tax_exempt_partial'"
+                v-if="formData.salaryCompositionNature === 'income' && formData.salaryCompositionTaxOption === 'tax_exempt_partial'"
               >
                 <div class="tax-partial-label">Trong đó:</div>
                 <div class="tax-partial-row d-flex align-items-start">
                   <label class="tax-partial-field-label flex-shrink-0"><b>Phần chịu thuế</b></label>
                   <div class="tax-partial-input flex-grow-1">
                     <MsTextarea
-                      v-model="formData.taxablePart"
+                      v-model="formData.salaryCompositionTaxablePart"
                       placeholder="Chỉ cần nhập giá trị cho 1 trong 2 phần chịu thuế và miễn thuế"
                       :rows="2"
                       class="w-full formula-editor"
@@ -272,7 +272,7 @@
                   <label class="tax-partial-field-label flex-shrink-0"><b>Phần miễn thuế</b></label>
                   <div class="tax-partial-input flex-grow-1">
                     <MsTextarea
-                      v-model="formData.taxExemptPart"
+                      v-model="formData.salaryCompositionTaxExemptPart"
                       placeholder="Chỉ cần nhập giá trị cho 1 trong 2 phần chịu thuế và miễn thuế"
                       :rows="2"
                       class="w-full formula-editor"
@@ -288,7 +288,7 @@
         <div class="form-row d-flex align-items-center">
           <label class="form-label-left flex-shrink-0"><b>Mô tả</b></label>
           <div class="form-input-right">
-            <MsTextarea v-model="formData.description" :rows="2" class="w-full" />
+            <MsTextarea v-model="formData.salaryCompositionDescription" :rows="2" class="w-full" />
           </div>
         </div>
 
@@ -296,10 +296,10 @@
         <div class="form-row d-flex align-items-center">
           <label class="form-label-left flex-shrink-0"><b>Hiển thị trên phiếu lương</b></label>
           <div class="form-input-right d-flex align-items-center gap-3">
-            <MsRadioButton v-model="formData.showOnPayslip" value="yes" label="Có" />
-            <MsRadioButton v-model="formData.showOnPayslip" value="no" label="Không" />
+            <MsRadioButton v-model="formData.salaryCompositionShowOnPayslip" value="yes" label="Có" />
+            <MsRadioButton v-model="formData.salaryCompositionShowOnPayslip" value="no" label="Không" />
             <MsRadioButton
-              v-model="formData.showOnPayslip"
+              v-model="formData.salaryCompositionShowOnPayslip"
               value="if_not_zero"
               label="Chỉ hiển thị nếu giá trị khác 0"
             />
@@ -318,8 +318,8 @@
         <div class="form-row d-flex align-items-center" v-if="isEdit">
           <label class="form-label-left flex-shrink-0"><b>Trạng thái</b></label>
           <div class="form-input-right d-flex align-items-center gap-3">
-            <MsRadioButton v-model="formData.status" :value="1" label="Đang theo dõi" />
-            <MsRadioButton v-model="formData.status" :value="0" label="Ngừng theo dõi" />
+            <MsRadioButton v-model="formData.salaryCompositionStatus" :value="1" label="Đang theo dõi" />
+            <MsRadioButton v-model="formData.salaryCompositionStatus" :value="0" label="Ngừng theo dõi" />
           </div>
         </div>
       </div>
@@ -557,10 +557,10 @@ const generateCodeFromName = (name) => {
 }
 
 watch(
-  () => formData.name,
+  () => formData.salaryCompositionName,
   (newName) => {
     if (!isEdit.value && !isCodeManuallyEdited.value) {
-      formData.code = generateCodeFromName(newName)
+      formData.salaryCompositionCode = generateCodeFromName(newName)
     }
   },
 )
@@ -581,65 +581,65 @@ const hasInvalidCharacters = (str) => {
 }
 
 const validateCodeRealtime = () => {
-  if (!formData.code) {
-    formErrors.code = ''
+  if (!formData.salaryCompositionCode) {
+    formErrors.salaryCompositionCode = ''
     return
   }
 
-  if (formData.code.includes(' ')) {
-    formErrors.code = 'Mã thành phần không được chứa khoảng trắng.'
-  } else if (hasVietnameseDiacritics(formData.code) || hasInvalidCharacters(formData.code)) {
-    formErrors.code =
+  if (formData.salaryCompositionCode.includes(' ')) {
+    formErrors.salaryCompositionCode = 'Mã thành phần không được chứa khoảng trắng.'
+  } else if (hasVietnameseDiacritics(formData.salaryCompositionCode) || hasInvalidCharacters(formData.salaryCompositionCode)) {
+    formErrors.salaryCompositionCode =
       'Mã thành phần chỉ có thể chứa các kí tự chữ (A-Z a-z), số (0-9) và gạch dưới (_).'
   } else {
-    formErrors.code = ''
+    formErrors.salaryCompositionCode = ''
   }
 }
 
 const formErrors = reactive({
-  name: '',
-  code: '',
-  type: '',
-  property: '',
+  salaryCompositionName: '',
+  salaryCompositionCode: '',
+  salaryCompositionType: '',
+  salaryCompositionNature: '',
 })
 
 const clearErrors = () => {
-  formErrors.name = ''
-  formErrors.code = ''
-  formErrors.type = ''
-  formErrors.property = ''
+  formErrors.salaryCompositionName = ''
+  formErrors.salaryCompositionCode = ''
+  formErrors.salaryCompositionType = ''
+  formErrors.salaryCompositionNature = ''
 }
 
 const validateForm = () => {
   clearErrors()
   let isValid = true
 
-  if (!formData.name?.trim()) {
-    formErrors.name = 'Không được để trống'
+  if (!formData.salaryCompositionName?.trim()) {
+    formErrors.salaryCompositionName = 'Không được để trống'
     isValid = false
   }
 
-  if (!formData.code?.trim()) {
-    formErrors.code = 'Không được để trống'
+  if (!formData.salaryCompositionCode?.trim()) {
+    formErrors.salaryCompositionCode = 'Không được để trống'
     isValid = false
-  } else if (formData.code.includes(' ')) {
-    formErrors.code = 'Mã thành phần không được chứa khoảng trắng.'
+  } else if (formData.salaryCompositionCode.includes(' ')) {
+    formErrors.salaryCompositionCode = 'Mã thành phần không được chứa khoảng trắng.'
     isValid = false
-  } else if (hasVietnameseDiacritics(formData.code) || hasInvalidCharacters(formData.code)) {
-    formErrors.code =
+  } else if (hasVietnameseDiacritics(formData.salaryCompositionCode) || hasInvalidCharacters(formData.salaryCompositionCode)) {
+    formErrors.salaryCompositionCode =
       'Mã thành phần chỉ có thể chứa các kí tự chữ (A-Z a-z), số (0-9) và gạch dưới (_).'
     isValid = false
   } else {
-    formData.code = formData.code.toUpperCase()
+    formData.salaryCompositionCode = formData.salaryCompositionCode.toUpperCase()
   }
 
-  if (!formData.type) {
-    formErrors.type = 'Không được để trống'
+  if (!formData.salaryCompositionType) {
+    formErrors.salaryCompositionType = 'Không được để trống'
     isValid = false
   }
 
-  if (!formData.property) {
-    formErrors.property = 'Không được để trống'
+  if (!formData.salaryCompositionNature) {
+    formErrors.salaryCompositionNature = 'Không được để trống'
     isValid = false
   }
 
@@ -652,8 +652,8 @@ onMounted(async () => {
     await fetchById(props.editId)
   } else if (isDuplicate.value && props.editId) {
     await fetchById(props.editId)
-    formData.code = ''
-    formData.name = ''
+    formData.salaryCompositionCode = ''
+    formData.salaryCompositionName = ''
     isCodeManuallyEdited.value = false
   } else {
     resetForm()
@@ -714,7 +714,7 @@ const sources = ref([
 ])
 
 const getSourceLabel = computed(() => {
-  const source = sources.value.find((s) => s.value === formData.source)
+  const source = sources.value.find((s) => s.value === formData.salaryCompositionSource)
   return source ? source.label : 'Tự thêm'
 })
 

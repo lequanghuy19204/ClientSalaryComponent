@@ -10,7 +10,7 @@ class SalaryCompositionApi extends BaseApi {
     const params = { code }
     if (excludeId) params.excludeId = excludeId
     const response = await this.getAll(params)
-    return response.some(item => item.code === code)
+    return response.some(item => item.salaryCompositionCode === code)
   }
 
   async updateStatus(id, status) {

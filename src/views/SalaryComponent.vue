@@ -70,8 +70,8 @@
             <MsTree
               v-model="selectedUnits"
               :data-source="unitTreeData"
-            key-expr="id"
-            display-expr="name"
+            key-expr="organizationId"
+            display-expr="organizationName"
             placeholder="Tất cả đơn vị"
             :max-selected-labels="1"
             class="filter-unit-tree"
@@ -136,20 +136,21 @@
         ref="dataGridRef"
         :data-source="salaryComponents"
         :columns="tableColumns"
-        key-expr="id"
+        key-expr="salaryCompositionId"
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
         :total-records="totalRecords"
         :page-size-options="pageSizeSelectOptions"
+        :action-buttons="actionButtons"
         @selection-changed="onSelectionChanged"
         @action="onAction"
       >
         <!-- Status column template -->
         <template #statusTemplate="{ data }">
           <div class="status-cell">
-            <div class="status-indicator" :class="data.data.status === 'Đang theo dõi' ? 'active' : 'inactive'"></div>
-            <span class="status-text" :class="data.data.status === 'Đang theo dõi' ? 'active' : 'inactive'">
-              {{ data.data.status }}
+            <div class="status-indicator" :class="data.data.salaryCompositionStatus === 'Đang theo dõi' ? 'active' : 'inactive'"></div>
+            <span class="status-text" :class="data.data.salaryCompositionStatus === 'Đang theo dõi' ? 'active' : 'inactive'">
+              {{ data.data.salaryCompositionStatus }}
             </span>
           </div>
         </template>
@@ -162,7 +163,7 @@
   <MsConfirmDialog
     v-model="showDeleteDialog"
     title="Thông báo"
-    :message="`Bạn có chắc chắn muốn xóa thành phần lương <strong>${deleteTarget?.name || ''}</strong> không?`"
+    :message="`Bạn có chắc chắn muốn xóa thành phần lương <strong>${deleteTarget?.salaryCompositionName || ''}</strong> không?`"
     confirm-text="Xóa"
     cancel-text="Hủy"
     confirm-variant="danger"
@@ -241,8 +242,8 @@ const bulkDeleteDialogMessage = computed(() => {
     return 'Đây là các thành phần lương mặc định của hệ thống nên không thể xóa. Vui lòng kiểm tra lại.'
   }
   if (bulkDeleteType.value === 'mixed') {
-    const systemItems = selectedRows.value.filter(r => r.source === 'Mặc định')
-    const names = systemItems.map(r => r.name).join(', ')
+    const systemItems = selectedRows.value.filter(r => r.salaryCompositionSource === 'Mặc định')
+    const names = systemItems.map(r => r.salaryCompositionName).join(', ')
     return `<strong>${names}</strong> là giá trị mặc định của hệ thống nên không thể xóa.<br/>Bạn có muốn xóa các thành phần lương còn lại không?`
   }
   const count = selectedRows.value.length
@@ -283,17 +284,17 @@ const statusDialogMessage = computed(() => {
     const plural = count > 1 ? 'các ' : ''
     return `Bạn có chắc chắn muốn chuyển trạng thái ${plural}thành phần lương đã chọn sang ${targetStatus} không?`
   }
-  return `Bạn có chắc chắn muốn chuyển trạng thái thành phần lương <strong>${statusChangeTarget.value?.name || ''}</strong> sang ${targetStatus} không?`
+  return `Bạn có chắc chắn muốn chuyển trạng thái thành phần lương <strong>${statusChangeTarget.value?.salaryCompositionName || ''}</strong> sang ${targetStatus} không?`
 })
 
 const showBulkStopButton = computed(() => {
   if (selectedRows.value.length === 0) return false
-  return selectedRows.value.some(row => row.status === 'Đang theo dõi')
+  return selectedRows.value.some(row => row.salaryCompositionStatus === 'Đang theo dõi')
 })
 
 const showBulkActiveButton = computed(() => {
   if (selectedRows.value.length === 0) return false
-  return selectedRows.value.some(row => row.status === 'Ngừng theo dõi')
+  return selectedRows.value.some(row => row.salaryCompositionStatus === 'Ngừng theo dõi')
 })
 
 // Filter state
@@ -308,20 +309,20 @@ const statusOptions = [
 
 // Table columns configuration
 const tableColumns = [
-  { dataField: 'code', caption: 'Mã thành phần', width: 250, minWidth: 120 },
-  { dataField: 'name', caption: 'Tên thành phần', width: 250, minWidth: 200 },
+  { dataField: 'salaryCompositionCode', caption: 'Mã thành phần', width: 250, minWidth: 120 },
+  { dataField: 'salaryCompositionName', caption: 'Tên thành phần', width: 250, minWidth: 200 },
   { dataField: 'unit', caption: 'Đơn vị áp dụng', width: 250, minWidth: 120 },
-  { dataField: 'type', caption: 'Loại thành phần', width: 250, minWidth: 120 },
-  { dataField: 'property', caption: 'Tính chất', width: 150, minWidth: 100 },
+  { dataField: 'salaryCompositionType', caption: 'Loại thành phần', width: 250, minWidth: 120 },
+  { dataField: 'salaryCompositionNature', caption: 'Tính chất', width: 150, minWidth: 100 },
   { dataField: 'taxable', caption: 'Chịu thuế', width: 200, minWidth: 100 },
   { dataField: 'taxDeduction', caption: 'Giảm trừ khi tính thuế', width: 180, minWidth: 150 },
-  { dataField: 'quota', caption: 'Định mức', width: 120, minWidth: 100 },
-  { dataField: 'valueType', caption: 'Kiểu giá trị', width: 120, minWidth: 100 },
+  { dataField: 'salaryCompositionQuota', caption: 'Định mức', width: 120, minWidth: 100 },
+  { dataField: 'salaryCompositionValueType', caption: 'Kiểu giá trị', width: 120, minWidth: 100 },
   { dataField: 'value', caption: 'Giá trị', width: 120, minWidth: 100 },
-  { dataField: 'description', caption: 'Mô tả', width: 200, minWidth: 150 },
+  { dataField: 'salaryCompositionDescription', caption: 'Mô tả', width: 200, minWidth: 150 },
   { dataField: 'showOnPayslip', caption: 'Hiển thị trên phiếu lương', width: 200, minWidth: 150 },
-  { dataField: 'source', caption: 'Nguồn tạo', width: 120, minWidth: 100 },
-  { dataField: 'status', caption: 'Trạng thái', width: 150, minWidth: 120, cellTemplate: 'statusTemplate' }
+  { dataField: 'salaryCompositionSource', caption: 'Nguồn tạo', width: 120, minWidth: 100 },
+  { dataField: 'salaryCompositionStatus', caption: 'Trạng thái', width: 150, minWidth: 120, cellTemplate: 'statusTemplate' }
 ]
 
 // Pagination state
@@ -384,6 +385,18 @@ const statusMap = {
   0: 'Ngừng theo dõi'
 }
 
+// Action buttons configuration with dynamic icon/title
+const actionButtons = [
+  {
+    name: 'stop',
+    title: (row) => row.salaryCompositionStatus === 'Đang theo dõi' ? 'Ngừng theo dõi' : 'Đang theo dõi',
+    icon: (row) => row.salaryCompositionStatus === 'Đang theo dõi' ? 'icon-mi-circle-minus-yellow' : 'icon-mi-circle-check-green'
+  },
+  { name: 'duplicate', title: 'Nhân bản', icon: 'icon-mi-copy' },
+  { name: 'edit', title: 'Sửa', icon: 'icon-mi-pencil' },
+  { name: 'delete', title: 'Xóa', icon: 'icon-mi-trash-red' }
+]
+
 // Map kiểu giá trị
 const valueTypeMap = {
   number: 'Số',
@@ -404,9 +417,9 @@ const getUnitDisplayNames = (unitIds) => {
   const childrenByParent = new Map()
 
   for (const raw of orgFlatList.value) {
-    const idStr = String(raw.id)
+    const idStr = String(raw.organizationId)
     const parentIdStr = raw.parentId == null ? null : String(raw.parentId)
-    const nameStr = String(raw.name ?? '')
+    const nameStr = String(raw.organizationName ?? '')
     byId.set(idStr, { id: idStr, name: nameStr, parentId: parentIdStr })
     if (!childrenByParent.has(parentIdStr)) childrenByParent.set(parentIdStr, [])
     childrenByParent.get(parentIdStr).push(idStr)
@@ -458,8 +471,8 @@ const getUnitDisplayNames = (unitIds) => {
   // Lấy tên theo thứ tự trong flatList
   const result = []
   for (const raw of orgFlatList.value) {
-    const idStr = String(raw.id)
-    if (displayIds.has(idStr)) result.push(String(raw.name ?? ''))
+    const idStr = String(raw.organizationId)
+    if (displayIds.has(idStr)) result.push(String(raw.organizationName ?? ''))
   }
   return result.join(', ')
 }
@@ -467,18 +480,18 @@ const getUnitDisplayNames = (unitIds) => {
 const mapDataForDisplay = (data) => {
   return data.map(item => ({
     ...item,
-    unit: getUnitDisplayNames(item.unitIds),
-    type: typeMap[item.type] || item.type,
-    property: propertyMap[item.property] || item.property,
-    taxable: taxOptionMap[item.taxOption] || item.taxOption || '',
-    taxDeduction: item.deductWhenCalculatingTax ? 'Có' : 'Không',
-    quota: item.quota || '',
-    valueType: valueTypeMap[item.valueType] || item.valueType || '',
-    value: item.valueFormula || '',
-    description: item.description || '',
-    showOnPayslip: showOnPayslipMap[item.showOnPayslip] || item.showOnPayslip || '',
-    source: sourceMap[item.source] || item.source || '',
-    status: statusMap[item.status] ?? item.status
+    unit: getUnitDisplayNames(item.organizationIds),
+    salaryCompositionType: typeMap[item.salaryCompositionType] || item.salaryCompositionType,
+    salaryCompositionNature: propertyMap[item.salaryCompositionNature] || item.salaryCompositionNature,
+    taxable: taxOptionMap[item.salaryCompositionTaxOption] || item.salaryCompositionTaxOption || '',
+    taxDeduction: item.salaryCompositionTaxDeduction ? 'Có' : 'Không',
+    salaryCompositionQuota: item.salaryCompositionQuota || '',
+    salaryCompositionValueType: valueTypeMap[item.salaryCompositionValueType] || item.salaryCompositionValueType || '',
+    value: item.salaryCompositionValueFormula || '',
+    salaryCompositionDescription: item.salaryCompositionDescription || '',
+    showOnPayslip: showOnPayslipMap[item.salaryCompositionShowOnPayslip] || item.salaryCompositionShowOnPayslip || '',
+    salaryCompositionSource: sourceMap[item.salaryCompositionSource] || item.salaryCompositionSource || '',
+    salaryCompositionStatus: statusMap[item.salaryCompositionStatus] ?? item.salaryCompositionStatus
   }))
 }
 
@@ -539,11 +552,11 @@ const confirmStatusChange = async () => {
   
   try {
     if (isBulkStatusChange.value) {
-      const ids = statusChangeTarget.value.map(r => r.id)
+      const ids = statusChangeTarget.value.map(r => r.salaryCompositionId)
       await salaryCompositionApi.bulkUpdateStatus(ids, status)
       clearSelection()
     } else {
-      await salaryCompositionApi.updateStatus(statusChangeTarget.value.id, status)
+      await salaryCompositionApi.updateStatus(statusChangeTarget.value.salaryCompositionId, status)
     }
     toast.success('Chuyển trạng thái thành công')
     showStatusDialog.value = false
@@ -561,8 +574,8 @@ const confirmStatusChange = async () => {
 const onBulkDelete = () => {
   if (selectedRows.value.length === 0) return
 
-  const hasSystem = selectedRows.value.some(r => r.source === 'Mặc định')
-  const hasManual = selectedRows.value.some(r => r.source === 'Tự thêm')
+  const hasSystem = selectedRows.value.some(r => r.salaryCompositionSource === 'Mặc định')
+  const hasManual = selectedRows.value.some(r => r.salaryCompositionSource === 'Tự thêm')
 
   if (hasSystem && hasManual) {
     bulkDeleteType.value = 'mixed'
@@ -579,14 +592,14 @@ const confirmBulkDelete = async () => {
   isDeleting.value = true
   
   try {
-    const itemsToDelete = selectedRows.value.filter(r => r.source === 'Tự thêm')
+    const itemsToDelete = selectedRows.value.filter(r => r.salaryCompositionSource === 'Tự thêm')
     
     if (itemsToDelete.length === 0) {
       showBulkDeleteDialog.value = false
       return
     }
     
-    const deletePromises = itemsToDelete.map(row => salaryCompositionApi.delete(row.id))
+    const deletePromises = itemsToDelete.map(row => salaryCompositionApi.delete(row.salaryCompositionId))
     await Promise.all(deletePromises)
     toast.success('Xóa thành công')
     showBulkDeleteDialog.value = false
@@ -603,17 +616,17 @@ const confirmBulkDelete = async () => {
 const onAction = async ({ action, data }) => {
   if (action === 'edit') {
     formMode.value = 'edit'
-    editId.value = data.id
+    editId.value = data.salaryCompositionId
     showForm.value = true
   } else if (action === 'duplicate') {
     formMode.value = 'duplicate'
-    editId.value = data.id
+    editId.value = data.salaryCompositionId
     showForm.value = true
   } else if (action === 'delete') {
     deleteTarget.value = data
     showDeleteDialog.value = true
   } else if (action === 'stop') {
-    const type = data.status === 'Đang theo dõi' ? 'stop' : 'active'
+    const type = data.salaryCompositionStatus === 'Đang theo dõi' ? 'stop' : 'active'
     onSingleStatusChange(data, type)
   }
 }
@@ -623,7 +636,7 @@ const confirmDelete = async () => {
   
   isDeleting.value = true
   try {
-    await salaryCompositionApi.delete(deleteTarget.value.id)
+    await salaryCompositionApi.delete(deleteTarget.value.salaryCompositionId)
     toast.success('Xóa thành công')
     showDeleteDialog.value = false
     deleteTarget.value = null

@@ -185,10 +185,17 @@ const props = defineProps({
     type: Number,
     default: 177
   },
+  /**
+   * Action buttons configuration
+   * Each button can have:
+   * - name: string - action name emitted on click
+   * - title: string | (rowData) => string - button tooltip
+   * - icon: string | (rowData) => string - icon class
+   * - visible: (rowData) => boolean - optional visibility condition
+   */
   actionButtons: {
     type: Array,
     default: () => [
-      { name: 'stop', title: 'Ngừng theo dõi', icon: 'icon-mi-circle-minus-yellow' },
       { name: 'duplicate', title: 'Nhân bản', icon: 'icon-mi-copy' },
       { name: 'edit', title: 'Sửa', icon: 'icon-mi-pencil' },
       { name: 'delete', title: 'Xóa', icon: 'icon-mi-trash-red' }
@@ -242,17 +249,27 @@ const actionOverlayStyle = computed(() => ({
 const computedActionButtons = computed(() => {
   if (!hoveredRowData.value) return props.actionButtons
   
-  return props.actionButtons.map(action => {
-    if (action.name === 'stop') {
-      const isActive = hoveredRowData.value.status === 'Đang theo dõi'
-      return {
-        ...action,
-        title: isActive ? 'Ngừng theo dõi' : 'Đang theo dõi',
-        icon: isActive ? 'icon-mi-circle-minus-yellow' : 'icon-mi-circle-check-green'
+  return props.actionButtons
+    .filter(action => {
+      // Check visibility condition if provided
+      if (typeof action.visible === 'function') {
+        return action.visible(hoveredRowData.value)
       }
-    }
-    return action
-  })
+      return true
+    })
+    .map(action => {
+      // Resolve dynamic title
+      const title = typeof action.title === 'function' 
+        ? action.title(hoveredRowData.value) 
+        : action.title
+      
+      // Resolve dynamic icon
+      const icon = typeof action.icon === 'function' 
+        ? action.icon(hoveredRowData.value) 
+        : action.icon
+      
+      return { ...action, title, icon }
+    })
 })
 
 // Row hover handlers
