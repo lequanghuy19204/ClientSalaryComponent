@@ -28,7 +28,10 @@ export function useSalaryComposition() {
     valueFormula: '',
     description: '',
     showOnPayslip: 'yes',
-    source: 'manual'
+    source: 'manual',
+    status: 1,
+    taxablePart: '',
+    taxExemptPart: ''
   }
 
   const form = reactive({ ...defaultFormData })
@@ -65,7 +68,10 @@ export function useSalaryComposition() {
         valueFormula: data.valueFormula || '',
         description: data.description || '',
         showOnPayslip: data.showOnPayslip,
-        source: data.source
+        source: data.source,
+        status: data.status ?? 1,
+        taxablePart: data.taxablePart || '',
+        taxExemptPart: data.taxExemptPart || ''
       })
       selected.value = data
       return data
@@ -99,7 +105,8 @@ export function useSalaryComposition() {
       valueCalculation: form.valueCalculation,
       description: form.description,
       showOnPayslip: form.showOnPayslip,
-      source: form.source
+      source: form.source,
+      status: form.status
     }
 
     // 1. sumScope, orgLevel, salaryComponentToSum - chỉ gửi khi valueCalculation = 'auto_sum'
@@ -118,8 +125,18 @@ export function useSalaryComposition() {
     // 2. taxOption - chỉ gửi khi property = 'income'
     if (form.property === 'income') {
       data.taxOption = form.taxOption
+      // taxablePart, taxExemptPart - chỉ gửi khi taxOption = 'tax_exempt_partial'
+      if (form.taxOption === 'tax_exempt_partial') {
+        data.taxablePart = form.taxablePart
+        data.taxExemptPart = form.taxExemptPart
+      } else {
+        data.taxablePart = null
+        data.taxExemptPart = null
+      }
     } else {
       data.taxOption = null
+      data.taxablePart = null
+      data.taxExemptPart = null
     }
 
     // 3. deductWhenCalculatingTax - chỉ gửi khi property = 'deduction'

@@ -107,6 +107,11 @@ const getIconClass = (type) => {
   color: #7f1d1d;
 }
 
+.ms-toast-error .ms-toast-icon {
+  background: #e83950;
+  border-radius: 4px 0 0 4px;
+}
+
 .ms-toast-error .ms-icon {
   color: #dc2626;
 }

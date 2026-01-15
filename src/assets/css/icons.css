@@ -365,3 +365,13 @@
   height: 20px;
   background-color: #fff !important;
 }
+
+.icon-mi-alert-error {
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -240px -40px;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -240px -40px;
+  width: 20px;
+  height: 20px;
+  background-color: #fff !important;
+}

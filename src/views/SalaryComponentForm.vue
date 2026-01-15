@@ -250,6 +250,36 @@
                   />
                 </div>
               </div>
+
+              <!-- Phần chịu thuế / miễn thuế (chỉ hiển thị khi chọn miễn thuế một phần) -->
+              <div
+                class="tax-partial-section"
+                v-if="formData.property === 'income' && formData.taxOption === 'tax_exempt_partial'"
+              >
+                <div class="tax-partial-label">Trong đó:</div>
+                <div class="tax-partial-row d-flex align-items-start">
+                  <label class="tax-partial-field-label flex-shrink-0"><b>Phần chịu thuế</b></label>
+                  <div class="tax-partial-input flex-grow-1">
+                    <MsTextarea
+                      v-model="formData.taxablePart"
+                      placeholder="Chỉ cần nhập giá trị cho 1 trong 2 phần chịu thuế và miễn thuế"
+                      :rows="2"
+                      class="w-full formula-editor"
+                    />
+                  </div>
+                </div>
+                <div class="tax-partial-row d-flex align-items-start">
+                  <label class="tax-partial-field-label flex-shrink-0"><b>Phần miễn thuế</b></label>
+                  <div class="tax-partial-input flex-grow-1">
+                    <MsTextarea
+                      v-model="formData.taxExemptPart"
+                      placeholder="Chỉ cần nhập giá trị cho 1 trong 2 phần chịu thuế và miễn thuế"
+                      :rows="2"
+                      class="w-full formula-editor"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -279,8 +309,17 @@
         <!-- Row 12: Nguồn tạo -->
         <div class="form-row d-flex align-items-center">
           <label class="form-label-left flex-shrink-0"><b>Nguồn tạo</b></label>
-          <div class="form-input-right">
+          <div class="form-input-right border-bottom">
             <span class="source-text">{{ getSourceLabel }}</span>
+          </div>
+        </div>
+
+        <!-- Row 13: Trạng thái (chỉ hiển thị khi sửa) -->
+        <div class="form-row d-flex align-items-center" v-if="isEdit">
+          <label class="form-label-left flex-shrink-0"><b>Trạng thái</b></label>
+          <div class="form-input-right d-flex align-items-center gap-3">
+            <MsRadioButton v-model="formData.status" :value="1" label="Đang theo dõi" />
+            <MsRadioButton v-model="formData.status" :value="0" label="Ngừng theo dõi" />
           </div>
         </div>
       </div>
@@ -695,7 +734,8 @@ const handleSave = async () => {
     goBack()
   } catch (err) {
     console.error('Save error:', err)
-    toast.error('Có lỗi xảy ra')
+    const errorMessage = err.message || 'Có lỗi xảy ra'
+    toast.error(errorMessage)
   }
 }
 
@@ -710,7 +750,8 @@ const handleSaveAndAdd = async () => {
     clearErrors()
   } catch (err) {
     console.error('Save error:', err)
-    toast.error('Có lỗi xảy ra')
+    const errorMessage = err.message || 'Có lỗi xảy ra'
+    toast.error(errorMessage)
   }
 }
 </script>
@@ -859,6 +900,7 @@ const handleSaveAndAdd = async () => {
 /* Formula Editor */
 .formula-editor :deep(.ms-textarea) {
   min-height: 70px;
+  max-width: 540px;
 }
 
 /* Value Option */
@@ -876,6 +918,11 @@ const handleSaveAndAdd = async () => {
   font-size: 14px;
   color: #212121;
   line-height: 36px;
+}
+
+.border-bottom {
+  border-bottom: 1px solid #e0e0e0;
+  max-width: 674px;
 }
 
 /* Info Icon */
@@ -907,5 +954,35 @@ const handleSaveAndAdd = async () => {
 
 .form-unit-tree :deep(.ms-tree) {
   width: 100%;
+}
+
+/* Tax Partial Section */
+.tax-partial-section {
+  margin-top: 16px;
+  width: 100%;
+}
+
+.tax-partial-label {
+  font-size: 14px;
+  color: #212121;
+  margin-bottom: 8px;
+}
+
+.tax-partial-row {
+  margin-bottom: 16px;
+  line-height: 36px;
+}
+
+.tax-partial-field-label {
+  width: 120px;
+  font-size: 14px;
+  font-weight: 400;
+  color: #212121;
+  padding-right: 8px;
+}
+
+.tax-partial-input {
+  margin-left: 12px;
+  max-width: 674px;
 }
 </style>
