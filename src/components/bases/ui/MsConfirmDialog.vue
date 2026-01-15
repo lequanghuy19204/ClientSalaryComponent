@@ -26,6 +26,12 @@
               @click="onCancel"
             />
             <MsButton
+              v-if="showMiddleButton"
+              :label="middleText"
+              variant="outline"
+              @click="onMiddle"
+            />
+            <MsButton
               :label="confirmText"
               :variant="confirmVariant"
               :loading="loading"
@@ -83,10 +89,18 @@ const props = defineProps({
   closeTooltip: {
     type: String,
     default: 'Đóng'
+  },
+  showMiddleButton: {
+    type: Boolean,
+    default: false
+  },
+  middleText: {
+    type: String,
+    default: 'Không lưu'
   }
 })
 
-const emit = defineEmits(['update:modelValue', 'confirm', 'cancel'])
+const emit = defineEmits(['update:modelValue', 'confirm', 'cancel', 'middle'])
 
 const dialogStyle = computed(() => ({
   width: typeof props.width === 'number' ? `${props.width}px` : props.width,
@@ -100,6 +114,11 @@ const onConfirm = () => {
 const onCancel = () => {
   emit('update:modelValue', false)
   emit('cancel')
+}
+
+const onMiddle = () => {
+  emit('update:modelValue', false)
+  emit('middle')
 }
 
 const onOverlayClick = () => {

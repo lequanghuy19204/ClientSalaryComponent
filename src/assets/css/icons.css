@@ -212,8 +212,11 @@
 }
 
 .icon-mi-pin {
-  background: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
     no-repeat -180px -80px;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -180px -80px;
+  background-color: #34b057 !important;
   width: 20px;
   height: 20px;
 }

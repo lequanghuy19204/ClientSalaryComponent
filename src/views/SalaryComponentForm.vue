@@ -8,10 +8,12 @@
           variant="text"
           size="small"
           class="btn-back"
-          @click="goBack"
+          @click="checkUnsavedAndGoBack"
           title="Quay lại"
         />
-        <h2 class="form-title overflow-hidden" :title="isEdit ? formData.name : ''">{{ isEdit ? formData.name : 'Thêm thành phần' }}</h2>
+        <h2 class="form-title overflow-hidden" :title="isEdit ? formData.name : ''">
+          {{ isEdit ? formData.name : 'Thêm thành phần' }}
+        </h2>
       </div>
       <div class="d-flex align-items-center gap-2">
         <MsButton label="Hủy bỏ" variant="outline" @click="handleCancel" />
@@ -118,14 +120,31 @@
               :error-message="formErrors.property"
             />
             <!-- Thu nhập: 3 radio buttons -->
-            <div class="tax-options d-flex align-items-center flex-shrink-0" v-if="formData.property === 'income'">
+            <div
+              class="tax-options d-flex align-items-center flex-shrink-0"
+              v-if="formData.property === 'income'"
+            >
               <MsRadioButton v-model="formData.taxOption" value="taxable" label="Chịu thuế" />
-              <MsRadioButton v-model="formData.taxOption" value="tax_exempt_full" label="Miễn thuế toàn phần" />
-              <MsRadioButton v-model="formData.taxOption" value="tax_exempt_partial" label="Miễn thuế một phần" />
+              <MsRadioButton
+                v-model="formData.taxOption"
+                value="tax_exempt_full"
+                label="Miễn thuế toàn phần"
+              />
+              <MsRadioButton
+                v-model="formData.taxOption"
+                value="tax_exempt_partial"
+                label="Miễn thuế một phần"
+              />
             </div>
             <!-- Khấu trừ: 1 checkbox -->
-            <div class="tax-options d-flex align-items-center flex-shrink-0" v-else-if="formData.property === 'deduction'">
-              <MsCheckbox v-model="formData.deductWhenCalculatingTax" label="Giảm trừ khi tính thuế" />
+            <div
+              class="tax-options d-flex align-items-center flex-shrink-0"
+              v-else-if="formData.property === 'deduction'"
+            >
+              <MsCheckbox
+                v-model="formData.deductWhenCalculatingTax"
+                label="Giảm trừ khi tính thuế"
+              />
             </div>
             <!-- Khác: không hiển thị gì -->
           </div>
@@ -149,7 +168,10 @@
           <label class="form-label-left flex-shrink-0"></label>
           <div class="form-input-right">
             <div class="d-flex align-items-center gap-2">
-              <MsCheckbox v-model="formData.allowExceedQuota" label="Cho phép giá trị tính vượt quá định mức" />
+              <MsCheckbox
+                v-model="formData.allowExceedQuota"
+                label="Cho phép giá trị tính vượt quá định mức"
+              />
               <i class="pi pi-info-circle info-icon" v-tooltip.top="'Thông tin thêm'"></i>
             </div>
           </div>
@@ -197,7 +219,10 @@
                 />
               </div>
               <!-- Select thành phần lương khi chọn auto_sum -->
-              <div class="value-option d-flex align-items-center gap-3" v-if="formData.valueCalculation === 'auto_sum'">
+              <div
+                class="value-option d-flex align-items-center gap-3"
+                v-if="formData.valueCalculation === 'auto_sum'"
+              >
                 <MsSelect
                   v-model="formData.salaryComponentToSum"
                   :options="salaryComponentOptions"
@@ -213,7 +238,10 @@
                   value="formula"
                   label="Tính theo công thức tự đặt"
                 />
-                <div class="formula-container position-relative w-100" v-if="formData.valueCalculation === 'formula'">
+                <div
+                  class="formula-container position-relative w-100"
+                  v-if="formData.valueCalculation === 'formula'"
+                >
                   <MsTextarea
                     v-model="formData.valueFormula"
                     placeholder="Tự động gợi ý công thức và tham số khi gõ"
@@ -230,11 +258,7 @@
         <div class="form-row d-flex align-items-center">
           <label class="form-label-left flex-shrink-0"><b>Mô tả</b></label>
           <div class="form-input-right">
-            <MsTextarea
-              v-model="formData.description"
-              :rows="2"
-              class="w-full"
-            />
+            <MsTextarea v-model="formData.description" :rows="2" class="w-full" />
           </div>
         </div>
 
@@ -244,7 +268,11 @@
           <div class="form-input-right d-flex align-items-center gap-3">
             <MsRadioButton v-model="formData.showOnPayslip" value="yes" label="Có" />
             <MsRadioButton v-model="formData.showOnPayslip" value="no" label="Không" />
-            <MsRadioButton v-model="formData.showOnPayslip" value="if_not_zero" label="Chỉ hiển thị nếu giá trị khác 0" />
+            <MsRadioButton
+              v-model="formData.showOnPayslip"
+              value="if_not_zero"
+              label="Chỉ hiển thị nếu giá trị khác 0"
+            />
           </div>
         </div>
 
@@ -257,6 +285,22 @@
         </div>
       </div>
     </div>
+
+    <!-- Unsaved Changes Dialog -->
+    <MsConfirmDialog
+      v-model="showUnsavedDialog"
+      title="Thông báo"
+      message="Thông tin đã được thay đổi. Bạn có muốn lưu lại không?"
+      confirm-text="Lưu"
+      cancel-text="Hủy"
+      middle-text="Không lưu"
+      :show-middle-button="true"
+      confirm-variant="primary"
+      :close-on-overlay="false"
+      @cancel="handleUnsavedCancel"
+      @middle="handleUnsavedNoSave"
+      @confirm="handleUnsavedSave"
+    />
   </div>
 </template>
 
@@ -269,30 +313,24 @@ import MsRadioButton from '@/components/bases/form/MsRadioButton.vue'
 import MsCheckbox from '@/components/bases/form/MsCheckbox.vue'
 import MsTree from '@/components/bases/data/MsTree.vue'
 import MsButton from '@/components/bases/ui/MsButton.vue'
+import MsConfirmDialog from '@/components/bases/ui/MsConfirmDialog.vue'
 import { useSalaryComposition, useOrganization, useToast } from '@/composables'
 
 const props = defineProps({
   mode: {
     type: String,
     default: 'add',
-    validator: (value) => ['add', 'edit', 'duplicate'].includes(value)
+    validator: (value) => ['add', 'edit', 'duplicate'].includes(value),
   },
   editId: {
     type: [String, Number],
-    default: null
-  }
+    default: null,
+  },
 })
 
 const emit = defineEmits(['back', 'saved', 'deleted'])
 
-const {
-  form: formData,
-  fetchById,
-  save,
-  saveAndNew,
-  remove,
-  resetForm
-} = useSalaryComposition()
+const { form: formData, fetchById, save, saveAndNew, remove, resetForm } = useSalaryComposition()
 
 const { tree: unitTreeData, fetchTree } = useOrganization()
 
@@ -304,16 +342,18 @@ const isDuplicate = computed(() => props.mode === 'duplicate')
 const isCodeManuallyEdited = ref(false)
 const showMoreMenu = ref(false)
 const formBodyRef = ref(null)
+const showUnsavedDialog = ref(false)
+const originalFormData = ref(null)
 
 const focusNextInput = (e) => {
   if (e.target.tagName === 'TEXTAREA') return
-  
+
   e.preventDefault()
   const focusableElements = formBodyRef.value?.querySelectorAll(
-    'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])'
+    'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])',
   )
   if (!focusableElements) return
-  
+
   const currentIndex = Array.from(focusableElements).indexOf(e.target)
   if (currentIndex !== -1 && currentIndex < focusableElements.length - 1) {
     focusableElements[currentIndex + 1].focus()
@@ -332,6 +372,33 @@ const closeMoreMenu = (e) => {
 
 const goBack = () => {
   emit('back')
+}
+
+const hasFormChanged = () => {
+  if (!originalFormData.value) return false
+  return JSON.stringify(formData) !== JSON.stringify(originalFormData.value)
+}
+
+const checkUnsavedAndGoBack = () => {
+  if (hasFormChanged()) {
+    showUnsavedDialog.value = true
+  } else {
+    goBack()
+  }
+}
+
+const handleUnsavedCancel = () => {
+  showUnsavedDialog.value = false
+}
+
+const handleUnsavedNoSave = () => {
+  showUnsavedDialog.value = false
+  goBack()
+}
+
+const handleUnsavedSave = async () => {
+  showUnsavedDialog.value = false
+  await handleSave()
 }
 
 const handleDuplicate = () => {
@@ -364,25 +431,79 @@ onUnmounted(() => {
 
 const removeVietnameseDiacritics = (str) => {
   const diacriticsMap = {
-    'à': 'a', 'á': 'a', 'ả': 'a', 'ã': 'a', 'ạ': 'a',
-    'ă': 'a', 'ằ': 'a', 'ắ': 'a', 'ẳ': 'a', 'ẵ': 'a', 'ặ': 'a',
-    'â': 'a', 'ầ': 'a', 'ấ': 'a', 'ẩ': 'a', 'ẫ': 'a', 'ậ': 'a',
-    'đ': 'd',
-    'è': 'e', 'é': 'e', 'ẻ': 'e', 'ẽ': 'e', 'ẹ': 'e',
-    'ê': 'e', 'ề': 'e', 'ế': 'e', 'ể': 'e', 'ễ': 'e', 'ệ': 'e',
-    'ì': 'i', 'í': 'i', 'ỉ': 'i', 'ĩ': 'i', 'ị': 'i',
-    'ò': 'o', 'ó': 'o', 'ỏ': 'o', 'õ': 'o', 'ọ': 'o',
-    'ô': 'o', 'ồ': 'o', 'ố': 'o', 'ổ': 'o', 'ỗ': 'o', 'ộ': 'o',
-    'ơ': 'o', 'ờ': 'o', 'ớ': 'o', 'ở': 'o', 'ỡ': 'o', 'ợ': 'o',
-    'ù': 'u', 'ú': 'u', 'ủ': 'u', 'ũ': 'u', 'ụ': 'u',
-    'ư': 'u', 'ừ': 'u', 'ứ': 'u', 'ử': 'u', 'ữ': 'u', 'ự': 'u',
-    'ỳ': 'y', 'ý': 'y', 'ỷ': 'y', 'ỹ': 'y', 'ỵ': 'y'
+    à: 'a',
+    á: 'a',
+    ả: 'a',
+    ã: 'a',
+    ạ: 'a',
+    ă: 'a',
+    ằ: 'a',
+    ắ: 'a',
+    ẳ: 'a',
+    ẵ: 'a',
+    ặ: 'a',
+    â: 'a',
+    ầ: 'a',
+    ấ: 'a',
+    ẩ: 'a',
+    ẫ: 'a',
+    ậ: 'a',
+    đ: 'd',
+    è: 'e',
+    é: 'e',
+    ẻ: 'e',
+    ẽ: 'e',
+    ẹ: 'e',
+    ê: 'e',
+    ề: 'e',
+    ế: 'e',
+    ể: 'e',
+    ễ: 'e',
+    ệ: 'e',
+    ì: 'i',
+    í: 'i',
+    ỉ: 'i',
+    ĩ: 'i',
+    ị: 'i',
+    ò: 'o',
+    ó: 'o',
+    ỏ: 'o',
+    õ: 'o',
+    ọ: 'o',
+    ô: 'o',
+    ồ: 'o',
+    ố: 'o',
+    ổ: 'o',
+    ỗ: 'o',
+    ộ: 'o',
+    ơ: 'o',
+    ờ: 'o',
+    ớ: 'o',
+    ở: 'o',
+    ỡ: 'o',
+    ợ: 'o',
+    ù: 'u',
+    ú: 'u',
+    ủ: 'u',
+    ũ: 'u',
+    ụ: 'u',
+    ư: 'u',
+    ừ: 'u',
+    ứ: 'u',
+    ử: 'u',
+    ữ: 'u',
+    ự: 'u',
+    ỳ: 'y',
+    ý: 'y',
+    ỷ: 'y',
+    ỹ: 'y',
+    ỵ: 'y',
   }
 
   return str
     .toLowerCase()
     .split('')
-    .map(char => diacriticsMap[char] || char)
+    .map((char) => diacriticsMap[char] || char)
     .join('')
 }
 
@@ -396,11 +517,14 @@ const generateCodeFromName = (name) => {
     .replace(/[^A-Z0-9_]/g, '')
 }
 
-watch(() => formData.name, (newName) => {
-  if (!isEdit.value && !isCodeManuallyEdited.value) {
-    formData.code = generateCodeFromName(newName)
-  }
-})
+watch(
+  () => formData.name,
+  (newName) => {
+    if (!isEdit.value && !isCodeManuallyEdited.value) {
+      formData.code = generateCodeFromName(newName)
+    }
+  },
+)
 
 const onCodeInput = () => {
   isCodeManuallyEdited.value = true
@@ -426,7 +550,8 @@ const validateCodeRealtime = () => {
   if (formData.code.includes(' ')) {
     formErrors.code = 'Mã thành phần không được chứa khoảng trắng.'
   } else if (hasVietnameseDiacritics(formData.code) || hasInvalidCharacters(formData.code)) {
-    formErrors.code = 'Mã thành phần chỉ có thể chứa các kí tự chữ (A-Z a-z), số (0-9) và gạch dưới (_).'
+    formErrors.code =
+      'Mã thành phần chỉ có thể chứa các kí tự chữ (A-Z a-z), số (0-9) và gạch dưới (_).'
   } else {
     formErrors.code = ''
   }
@@ -436,7 +561,7 @@ const formErrors = reactive({
   name: '',
   code: '',
   type: '',
-  property: ''
+  property: '',
 })
 
 const clearErrors = () => {
@@ -462,7 +587,8 @@ const validateForm = () => {
     formErrors.code = 'Mã thành phần không được chứa khoảng trắng.'
     isValid = false
   } else if (hasVietnameseDiacritics(formData.code) || hasInvalidCharacters(formData.code)) {
-    formErrors.code = 'Mã thành phần chỉ có thể chứa các kí tự chữ (A-Z a-z), số (0-9) và gạch dưới (_).'
+    formErrors.code =
+      'Mã thành phần chỉ có thể chứa các kí tự chữ (A-Z a-z), số (0-9) và gạch dưới (_).'
     isValid = false
   } else {
     formData.code = formData.code.toUpperCase()
@@ -493,6 +619,7 @@ onMounted(async () => {
   } else {
     resetForm()
   }
+  originalFormData.value = JSON.parse(JSON.stringify(formData))
 })
 
 const componentTypes = ref([
@@ -504,13 +631,13 @@ const componentTypes = ref([
   { value: 'salary', label: 'Lương' },
   { value: 'pit', label: 'Thuế TNCN' },
   { value: 'insurance_union', label: 'Bảo hiểm - Công đoàn' },
-  { value: 'other', label: 'Khác' }
+  { value: 'other', label: 'Khác' },
 ])
 
 const properties = ref([
   { value: 'income', label: 'Thu nhập' },
   { value: 'deduction', label: 'Khấu trừ' },
-  { value: 'other', label: 'Khác' }
+  { value: 'other', label: 'Khác' },
 ])
 
 const valueTypes = ref([
@@ -518,20 +645,20 @@ const valueTypes = ref([
   { value: 'currency', label: 'Tiền tệ' },
   { value: 'percent', label: 'Phần trăm' },
   { value: 'text', label: 'Chữ' },
-  { value: 'date', label: 'Ngày' }
+  { value: 'date', label: 'Ngày' },
 ])
 
 const sumScopeOptions = ref([
   { value: 'same_unit', label: 'Trong cùng đơn vị công tác' },
   { value: 'subordinate', label: 'Dưới quyền' },
-  { value: 'org_structure', label: 'Thuộc cơ cấu tổ chức' }
+  { value: 'org_structure', label: 'Thuộc cơ cấu tổ chức' },
 ])
 
 const orgLevelOptions = ref([
   { value: 'level_1', label: 'Cấp 1' },
   { value: 'level_2', label: 'Cấp 2' },
   { value: 'level_3', label: 'Cấp 3' },
-  { value: 'level_4', label: 'Cấp 4' }
+  { value: 'level_4', label: 'Cấp 4' },
 ])
 
 const salaryComponentOptions = ref([
@@ -539,21 +666,21 @@ const salaryComponentOptions = ref([
   { value: 'allowance', label: 'Phụ cấp' },
   { value: 'bonus', label: 'Thưởng' },
   { value: 'overtime', label: 'Làm thêm giờ' },
-  { value: 'insurance', label: 'Bảo hiểm' }
+  { value: 'insurance', label: 'Bảo hiểm' },
 ])
 
 const sources = ref([
   { value: 'manual', label: 'Tự thêm' },
-  { value: 'system', label: 'Hệ thống' }
+  { value: 'system', label: 'Hệ thống' },
 ])
 
 const getSourceLabel = computed(() => {
-  const source = sources.value.find(s => s.value === formData.source)
+  const source = sources.value.find((s) => s.value === formData.source)
   return source ? source.label : 'Tự thêm'
 })
 
 const handleCancel = () => {
-  goBack()
+  checkUnsavedAndGoBack()
 }
 
 const handleSave = async () => {
