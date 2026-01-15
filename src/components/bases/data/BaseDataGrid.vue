@@ -89,7 +89,7 @@
         <div class="action-buttons d-flex align-items-center">
           <slot name="actions" :data="hoveredRowData">
             <button
-              v-for="action in actionButtons"
+              v-for="action in computedActionButtons"
               :key="action.name"
               class="action-btn d-flex align-items-center justify-content-center bg-transparent border-0 rounded-1"
               :title="action.title"
@@ -238,6 +238,22 @@ const actionOverlayStyle = computed(() => ({
   right: '0px',
   width: `${props.actionColumnWidth}px`
 }))
+
+const computedActionButtons = computed(() => {
+  if (!hoveredRowData.value) return props.actionButtons
+  
+  return props.actionButtons.map(action => {
+    if (action.name === 'stop') {
+      const isActive = hoveredRowData.value.status === 'Đang theo dõi'
+      return {
+        ...action,
+        title: isActive ? 'Ngừng theo dõi' : 'Đang theo dõi',
+        icon: isActive ? 'icon-mi-circle-minus-yellow' : 'icon-mi-circle-check-green'
+      }
+    }
+    return action
+  })
+})
 
 // Row hover handlers
 const onRowPrepared = (e) => {
@@ -615,7 +631,7 @@ onBeforeUnmount(() => {
 }
 
 .base-table-wrapper .status-indicator.inactive {
-  background: rgb(235, 87, 87);
+  background: #ff9900;
 }
 
 .base-table-wrapper .status-text.active {
@@ -623,6 +639,6 @@ onBeforeUnmount(() => {
 }
 
 .base-table-wrapper .status-text.inactive {
-  color: rgb(235, 87, 87);
+  color: #ff9900;
 }
 </style>

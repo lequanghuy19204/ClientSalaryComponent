@@ -105,6 +105,7 @@
           <span class="deselect-link" @click="clearSelection">Bỏ chọn</span>
           <div class="selection-actions d-flex align-items-center gap-2">
             <MsButton
+              v-if="showBulkStopButton"
               label="Ngừng theo dõi"
               icon="icon-mi-circle-minus-yellow"
               variant="outline"
@@ -112,6 +113,7 @@
               @click="onBulkStop"
             />
             <MsButton
+              v-if="showBulkActiveButton"
               label="Đang theo dõi"
               icon="icon-mi-circle-check-green"
               variant="outline"
@@ -156,7 +158,7 @@
     </template>
   </div>
 
-  <!-- Delete Confirmation Dialog -->
+  <!-- Delete Confirmation Dialog (single item) -->
   <MsConfirmDialog
     v-model="showDeleteDialog"
     title="Thông báo"
@@ -167,10 +169,35 @@
     :loading="isDeleting"
     @confirm="confirmDelete"
   />
+
+  <!-- Bulk Delete Confirmation Dialog -->
+  <MsConfirmDialog
+    v-model="showBulkDeleteDialog"
+    :title="bulkDeleteDialogTitle"
+    :message="bulkDeleteDialogMessage"
+    :confirm-text="bulkDeleteConfirmText"
+    :cancel-text="bulkDeleteCancelText"
+    :confirm-variant="bulkDeleteConfirmVariant"
+    :show-confirm="bulkDeleteShowConfirm"
+    :loading="isDeleting"
+    @confirm="confirmBulkDelete"
+  />
+
+  <!-- Status Change Confirmation Dialog -->
+  <MsConfirmDialog
+    v-model="showStatusDialog"
+    title="Chuyển trạng thái"
+    :message="statusDialogMessage"
+    confirm-text="Đồng ý"
+    cancel-text="Hủy bỏ"
+    confirm-variant="primary"
+    :loading="isChangingStatus"
+    @confirm="confirmStatusChange"
+  />
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import BaseDataGrid from '@/components/bases/data/BaseDataGrid.vue'
 import MsTree from '@/components/bases/data/MsTree.vue'
 import MsButton from '@/components/bases/ui/MsButton.vue'
@@ -198,6 +225,76 @@ const dataGridRef = ref(null)
 const showDeleteDialog = ref(false)
 const deleteTarget = ref(null)
 const isDeleting = ref(false)
+
+// Bulk delete confirmation dialog state
+const showBulkDeleteDialog = ref(false)
+const bulkDeleteType = ref(null) // 'all_manual', 'all_system', 'mixed'
+
+const bulkDeleteDialogTitle = computed(() => {
+  if (bulkDeleteType.value === 'all_system') return 'Thông báo'
+  if (bulkDeleteType.value === 'mixed') return 'Xóa thành phần lương'
+  return 'Thông báo'
+})
+
+const bulkDeleteDialogMessage = computed(() => {
+  if (bulkDeleteType.value === 'all_system') {
+    return 'Đây là các thành phần lương mặc định của hệ thống nên không thể xóa. Vui lòng kiểm tra lại.'
+  }
+  if (bulkDeleteType.value === 'mixed') {
+    const systemItems = selectedRows.value.filter(r => r.source === 'Mặc định')
+    const names = systemItems.map(r => r.name).join(', ')
+    return `<strong>${names}</strong> là giá trị mặc định của hệ thống nên không thể xóa.<br/>Bạn có muốn xóa các thành phần lương còn lại không?`
+  }
+  const count = selectedRows.value.length
+  const plural = count > 1 ? 'các ' : ''
+  return `Bạn có chắc chắn muốn xóa ${plural}thành phần lương đã chọn không?`
+})
+
+const bulkDeleteConfirmText = computed(() => {
+  if (bulkDeleteType.value === 'all_system') return ''
+  return 'Xóa'
+})
+
+const bulkDeleteCancelText = computed(() => {
+  if (bulkDeleteType.value === 'all_system') return 'Đóng'
+  if (bulkDeleteType.value === 'mixed') return 'Đóng'
+  return 'Hủy'
+})
+
+const bulkDeleteConfirmVariant = computed(() => {
+  return 'danger'
+})
+
+const bulkDeleteShowConfirm = computed(() => {
+  return bulkDeleteType.value !== 'all_system'
+})
+
+// Status change confirmation dialog state
+const showStatusDialog = ref(false)
+const statusChangeTarget = ref(null)
+const statusChangeType = ref(null) // 'stop' or 'active'
+const isChangingStatus = ref(false)
+const isBulkStatusChange = ref(false)
+
+const statusDialogMessage = computed(() => {
+  const targetStatus = statusChangeType.value === 'stop' ? 'ngừng theo dõi' : 'đang theo dõi'
+  if (isBulkStatusChange.value) {
+    const count = statusChangeTarget.value?.length || 0
+    const plural = count > 1 ? 'các ' : ''
+    return `Bạn có chắc chắn muốn chuyển trạng thái ${plural}thành phần lương đã chọn sang ${targetStatus} không?`
+  }
+  return `Bạn có chắc chắn muốn chuyển trạng thái thành phần lương <strong>${statusChangeTarget.value?.name || ''}</strong> sang ${targetStatus} không?`
+})
+
+const showBulkStopButton = computed(() => {
+  if (selectedRows.value.length === 0) return false
+  return selectedRows.value.some(row => row.status === 'Đang theo dõi')
+})
+
+const showBulkActiveButton = computed(() => {
+  if (selectedRows.value.length === 0) return false
+  return selectedRows.value.some(row => row.status === 'Ngừng theo dõi')
+})
 
 // Filter state
 const selectedStatus = ref(null)
@@ -278,7 +375,7 @@ const showOnPayslipMap = {
 // Map nguồn tạo
 const sourceMap = {
   manual: 'Tự thêm',
-  system: 'Hệ thống'
+  system: 'Mặc định'
 }
 
 // Map trạng thái
@@ -414,25 +511,92 @@ const clearSelection = () => {
 }
 
 const onBulkStop = () => {
-  console.log('Bulk stop:', selectedRows.value)
+  if (selectedRows.value.length === 0) return
+  statusChangeTarget.value = [...selectedRows.value]
+  statusChangeType.value = 'stop'
+  isBulkStatusChange.value = true
+  showStatusDialog.value = true
 }
 
 const onBulkActive = () => {
-  console.log('Bulk active:', selectedRows.value)
+  if (selectedRows.value.length === 0) return
+  statusChangeTarget.value = [...selectedRows.value]
+  statusChangeType.value = 'active'
+  isBulkStatusChange.value = true
+  showStatusDialog.value = true
 }
 
-const onBulkDelete = async () => {
+const onSingleStatusChange = (data, type) => {
+  statusChangeTarget.value = data
+  statusChangeType.value = type
+  isBulkStatusChange.value = false
+  showStatusDialog.value = true
+}
+
+const confirmStatusChange = async () => {
+  isChangingStatus.value = true
+  const status = statusChangeType.value === 'stop' ? 0 : 1
+  
+  try {
+    if (isBulkStatusChange.value) {
+      const ids = statusChangeTarget.value.map(r => r.id)
+      await salaryCompositionApi.bulkUpdateStatus(ids, status)
+      clearSelection()
+    } else {
+      await salaryCompositionApi.updateStatus(statusChangeTarget.value.id, status)
+    }
+    toast.success('Chuyển trạng thái thành công')
+    showStatusDialog.value = false
+    statusChangeTarget.value = null
+    statusChangeType.value = null
+    await fetchSalaryComponents()
+  } catch (error) {
+    console.error('Error changing status:', error)
+    toast.error('Có lỗi xảy ra')
+  } finally {
+    isChangingStatus.value = false
+  }
+}
+
+const onBulkDelete = () => {
   if (selectedRows.value.length === 0) return
 
+  const hasSystem = selectedRows.value.some(r => r.source === 'Mặc định')
+  const hasManual = selectedRows.value.some(r => r.source === 'Tự thêm')
+
+  if (hasSystem && hasManual) {
+    bulkDeleteType.value = 'mixed'
+  } else if (hasSystem) {
+    bulkDeleteType.value = 'all_system'
+  } else {
+    bulkDeleteType.value = 'all_manual'
+  }
+  
+  showBulkDeleteDialog.value = true
+}
+
+const confirmBulkDelete = async () => {
+  isDeleting.value = true
+  
   try {
-    const deletePromises = selectedRows.value.map(row => salaryCompositionApi.delete(row.id))
+    const itemsToDelete = selectedRows.value.filter(r => r.source === 'Tự thêm')
+    
+    if (itemsToDelete.length === 0) {
+      showBulkDeleteDialog.value = false
+      return
+    }
+    
+    const deletePromises = itemsToDelete.map(row => salaryCompositionApi.delete(row.id))
     await Promise.all(deletePromises)
     toast.success('Xóa thành công')
+    showBulkDeleteDialog.value = false
     clearSelection()
     await fetchSalaryComponents()
   } catch (error) {
     console.error('Error deleting salary components:', error)
     toast.error('Có lỗi xảy ra')
+  } finally {
+    isDeleting.value = false
   }
 }
 
@@ -448,6 +612,9 @@ const onAction = async ({ action, data }) => {
   } else if (action === 'delete') {
     deleteTarget.value = data
     showDeleteDialog.value = true
+  } else if (action === 'stop') {
+    const type = data.status === 'Đang theo dõi' ? 'stop' : 'active'
+    onSingleStatusChange(data, type)
   }
 }
 

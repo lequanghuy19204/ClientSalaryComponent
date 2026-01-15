@@ -355,14 +355,14 @@ function onValueChanged(e) {
   mask-repeat: no-repeat;
   background-color: currentColor;
   mask-position: -122px -42px;
-  width: 16px;
-  height: 16px;
+  width: 16px !important;
+  height: 16px !important;
 }
 
 .dx-treeview-toggle-item-visibility.dx-treeview-toggle-item-visibility-opened {
   mask-position: -102px -42px;
-  width: 16px;
-  height: 16px;
+  width: 16px !important;
+  height: 16px !important;
 }
 
 /* Fix DevExtreme DropDownBox field template */

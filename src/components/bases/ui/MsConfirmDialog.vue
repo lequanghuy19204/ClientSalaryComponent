@@ -22,7 +22,7 @@
           <footer class="ms-dialog-footer d-flex align-items-center justify-content-end gap-2">
             <MsButton
               :label="cancelText"
-              variant="outline"
+              :variant="showConfirm ? 'outline' : 'primary'"
               @click="onCancel"
             />
             <MsButton
@@ -32,6 +32,7 @@
               @click="onMiddle"
             />
             <MsButton
+              v-if="showConfirm"
               :label="confirmText"
               :variant="confirmVariant"
               :loading="loading"
@@ -97,6 +98,10 @@ const props = defineProps({
   middleText: {
     type: String,
     default: 'Không lưu'
+  },
+  showConfirm: {
+    type: Boolean,
+    default: true
   }
 })
 
