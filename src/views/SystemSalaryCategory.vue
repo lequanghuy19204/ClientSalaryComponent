@@ -77,7 +77,9 @@
               :columns="tableColumns"
               :default-columns="defaultColumns"
               storage-key="system-salary-category-columns"
+              :pinned-column="pinnedColumn"
               @update:columns="onColumnsChange"
+              @config-loaded="onConfigLoaded"
             />
           </div>
         </template>
@@ -100,6 +102,8 @@
         :action-column-width="50"
         @action="onAction"
         @selection-changed="onSelectionChanged"
+        @column-pinned="onColumnPinned"
+        @column-resized="onColumnResized"
       />
     </div>
   </div>
@@ -142,7 +146,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseDataGrid from '@/components/bases/data/BaseDataGrid.vue'
 import MsButton from '@/components/bases/ui/MsButton.vue'
@@ -151,10 +155,13 @@ import MsSelect from '@/components/bases/form/MsSelect.vue'
 import MsConfirmDialog from '@/components/bases/ui/MsConfirmDialog.vue'
 import MsColumnConfig from '@/components/bases/ui/MsColumnConfig.vue'
 import { salaryCompositionSystemApi } from '@/api'
-import { useToast } from '@/composables'
+import { useToast, useGridConfig } from '@/composables'
+
+const GRID_CONFIG_KEY = 'system-salary-category-columns'
 
 const router = useRouter()
 const toast = useToast()
+const { saveConfig } = useGridConfig(GRID_CONFIG_KEY)
 
 const searchText = ref('')
 const selectedType = ref(null)
@@ -162,6 +169,7 @@ const loading = ref(false)
 const systemCategories = ref([])
 const selectedItems = ref([])
 const dataGridRef = ref(null)
+const pinnedColumn = ref(null)
 
 // Dialog states
 const showConfirmDialog = ref(false)
@@ -293,6 +301,40 @@ const gridKey = computed(() => tableColumns.value.map(c => c.dataField).join('-'
 
 const onColumnsChange = (newColumns) => {
   tableColumns.value = newColumns
+}
+
+const onConfigLoaded = (loadedColumns) => {
+  tableColumns.value = loadedColumns
+  const pinned = loadedColumns.find(c => c.isPinned)
+  if (pinned) {
+    pinnedColumn.value = pinned.dataField
+    nextTick(() => {
+      dataGridRef.value?.setPinnedColumn(pinned.dataField)
+    })
+  }
+}
+
+// Handle column pin change - save to server
+const onColumnPinned = async (dataField) => {
+  pinnedColumn.value = dataField
+  try {
+    await saveConfig(tableColumns.value, dataField)
+  } catch (err) {
+    console.error('Failed to save pinned column:', err)
+  }
+}
+
+// Handle column resize - save to server
+const onColumnResized = async ({ dataField, width }) => {
+  const col = tableColumns.value.find(c => c.dataField === dataField)
+  if (col) {
+    col.width = width
+  }
+  try {
+    await saveConfig(tableColumns.value, pinnedColumn.value)
+  } catch (err) {
+    console.error('Failed to save column width:', err)
+  }
 }
 
 // Action buttons - chỉ 1 nút thêm

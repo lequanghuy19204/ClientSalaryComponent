@@ -16,6 +16,7 @@
       height="100%"
       @selection-changed="onSelectionChanged"
       @row-prepared="onRowPrepared"
+      @option-changed="onOptionChanged"
     >
       <DxSelection
         v-if="selectable"
@@ -248,7 +249,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['selection-changed', 'action', 'update:currentPage', 'update:pageSize', 'page-change', 'page-size-change'])
+const emit = defineEmits(['selection-changed', 'action', 'update:currentPage', 'update:pageSize', 'page-change', 'page-size-change', 'column-pinned', 'column-resized'])
 
 // Refs
 const tableWrapperRef = ref(null)
@@ -279,8 +280,10 @@ const onPinColumn = (dataField) => {
   // If clicking on currently pinned column, reset to first column
   if (clickedIndex === pinnedColumnIndex.value) {
     pinnedColumnIndex.value = 0
+    emit('column-pinned', props.columns[0]?.dataField || null)
   } else {
     pinnedColumnIndex.value = clickedIndex
+    emit('column-pinned', dataField)
   }
 }
 
@@ -414,12 +417,54 @@ const onSelectionChanged = (e) => {
   emit('selection-changed', e.selectedRowsData)
 }
 
+// Handle column resize
+let resizeDebounceTimer = null
+const onOptionChanged = (e) => {
+  // Listen for column width changes
+  if (e.fullName && e.fullName.startsWith('columns[') && e.fullName.endsWith('].width')) {
+    // Extract column index from fullName like "columns[0].width"
+    const match = e.fullName.match(/columns\[(\d+)\]\.width/)
+    if (match) {
+      const colIndex = parseInt(match[1])
+      // Adjust for checkbox column (index 0 is checkbox if selectable)
+      const actualIndex = props.selectable ? colIndex - 1 : colIndex
+      if (actualIndex >= 0 && actualIndex < props.columns.length) {
+        const column = props.columns[actualIndex]
+        if (column) {
+          // Debounce the emit to avoid too many calls during resize
+          if (resizeDebounceTimer) clearTimeout(resizeDebounceTimer)
+          resizeDebounceTimer = setTimeout(() => {
+            emit('column-resized', { dataField: column.dataField, width: e.value })
+          }, 300)
+        }
+      }
+    }
+  }
+}
+
 const clearSelection = () => {
   dataGridRef.value?.instance?.clearSelection()
 }
 
+// Get current pinned column
+const getPinnedColumn = () => pinnedColumn.value
+
+// Set pinned column from outside
+const setPinnedColumn = (dataField) => {
+  if (!dataField) {
+    pinnedColumnIndex.value = 0
+    return
+  }
+  const index = props.columns.findIndex(col => col.dataField === dataField)
+  if (index !== -1) {
+    pinnedColumnIndex.value = index
+  }
+}
+
 defineExpose({
-  clearSelection
+  clearSelection,
+  getPinnedColumn,
+  setPinnedColumn
 })
 
 onBeforeUnmount(() => {

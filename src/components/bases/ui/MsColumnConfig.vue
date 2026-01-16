@@ -80,9 +80,10 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { VueDraggableNext } from 'vue-draggable-next'
 import MsButton from './MsButton.vue'
+import { useGridConfig } from '@/composables'
 
 const props = defineProps({
   columns: {
@@ -96,14 +97,24 @@ const props = defineProps({
   storageKey: {
     type: String,
     default: ''
+  },
+  pinnedColumn: {
+    type: String,
+    default: null
   }
 })
 
-const emit = defineEmits(['update:columns'])
+const emit = defineEmits(['update:columns', 'config-loaded'])
+
+// eslint-disable-next-line no-unused-vars
+const { loadConfig, saveConfig, resetConfig, loading } = props.storageKey 
+  ? useGridConfig(props.storageKey) 
+  : { loadConfig: null, saveConfig: null, resetConfig: null, loading: ref(false) }
 
 const isOpen = ref(false)
 const localColumns = ref([])
 const searchText = ref('')
+const isSaving = ref(false)
 
 const filteredColumns = computed({
   get() {
@@ -139,24 +150,48 @@ const toggleColumn = (col) => {
   }
 }
 
-const resetToDefault = () => {
+const resetToDefault = async () => {
   const defaults = props.defaultColumns.length > 0 ? props.defaultColumns : props.columns
   localColumns.value = defaults.map(c => ({
     ...c,
     visible: true
   }))
+  
+  if (resetConfig && props.storageKey) {
+    try {
+      await resetConfig()
+    } catch (err) {
+      console.error('Failed to reset config on server:', err)
+    }
+  }
 }
 
 const onDragEnd = () => {
   // Drag end handled by v-model
 }
 
-const applyChanges = () => {
-  emit('update:columns', [...localColumns.value])
-  if (props.storageKey) {
-    localStorage.setItem(props.storageKey, JSON.stringify(localColumns.value))
+const applyChanges = async () => {
+  isSaving.value = true
+  try {
+    emit('update:columns', [...localColumns.value])
+    
+    if (saveConfig && props.storageKey) {
+      await saveConfig(localColumns.value, props.pinnedColumn)
+    }
+    
+    closePopup()
+  } catch (err) {
+    console.error('Failed to save config:', err)
+  } finally {
+    isSaving.value = false
   }
-  closePopup()
+}
+
+const initConfig = async () => {
+  if (loadConfig && props.storageKey && props.defaultColumns.length > 0) {
+    const loaded = await loadConfig(props.defaultColumns)
+    emit('config-loaded', loaded)
+  }
 }
 
 watch(() => props.columns, (newCols) => {
@@ -164,6 +199,15 @@ watch(() => props.columns, (newCols) => {
     localColumns.value = newCols.map(c => ({ ...c }))
   }
 }, { immediate: true })
+
+onMounted(() => {
+  initConfig()
+})
+
+defineExpose({
+  initConfig,
+  saveConfig: () => saveConfig && saveConfig(props.columns, props.pinnedColumn)
+})
 </script>
 
 <style scoped>
