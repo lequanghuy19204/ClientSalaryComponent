@@ -11,6 +11,8 @@
       :show-column-lines="true"
       :show-row-lines="true"
       :key-expr="keyExpr"
+      :allow-column-resizing="true"
+      column-resizing-mode="widget"
       height="100%"
       @selection-changed="onSelectionChanged"
       @row-prepared="onRowPrepared"
@@ -22,30 +24,30 @@
       />
       <DxScrolling mode="virtual" column-rendering-mode="virtual" />
 
-      <!-- Fixed checkbox column on left -->
+      <!-- Checkbox column - fixed when any column is pinned -->
       <DxColumn
         v-if="selectable"
         type="selection"
         :width="40"
         :fixed="true"
         fixed-position="left"
-        css-class="cell-column"
+        css-class="cell-column checkbox-column"
       />
 
-      <!-- Dynamic columns -->
+      <!-- Dynamic columns with pin support -->
       <DxColumn
-        v-for="col in columns"
+        v-for="(col, index) in columns"
         :key="col.dataField"
         :data-field="col.dataField"
         :caption="col.caption"
         :width="col.width"
         :min-width="col.minWidth || 100"
-        :fixed="col.fixed || false"
-        :fixed-position="col.fixedPosition"
+        :fixed="index <= pinnedColumnIndex"
+        fixed-position="left"
         :allow-sorting="col.allowSorting !== false"
-        css-class="cell-column"
+        :css-class="getColumnClass(col.dataField, index)"
         :cell-template="col.cellTemplate"
-        :header-cell-template="col.headerCellTemplate"
+        header-cell-template="headerWithPinTemplate"
       />
 
       <!-- Placeholder column for action buttons -->
@@ -66,6 +68,24 @@
       </template>
       <template #emptyTemplate>
         <span></span>
+      </template>
+
+      <!-- Header with pin icon template -->
+      <template #headerWithPinTemplate="{ data }">
+        <div
+          class="header-with-pin d-flex align-items-center justify-content-between w-100"
+          @mouseenter="hoveredHeaderColumn = data.column.dataField"
+          @mouseleave="hoveredHeaderColumn = null"
+        >
+          <span class="header-text">{{ data.column.caption }}</span>
+          <span
+            v-if="hoveredHeaderColumn === data.column.dataField || pinnedColumn === data.column.dataField"
+            class="pin-icon"
+            :class="pinnedColumn === data.column.dataField ? 'icon-mi-pin' : 'icon-mi-uppin'"
+            @click.stop="onPinColumn(data.column.dataField)"
+            :title="pinnedColumn === data.column.dataField ? 'Bỏ ghim' : 'Ghim cột'"
+          ></span>
+        </div>
       </template>
 
       <!-- Pass through custom cell templates via slots -->
@@ -151,7 +171,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeUnmount } from 'vue'
+import { ref, computed, onBeforeUnmount, watch } from 'vue'
 import { DxDataGrid, DxColumn, DxSelection, DxScrolling, DxPaging } from 'devextreme-vue/data-grid'
 import MsButton from '@/components/bases/ui/MsButton.vue'
 import MsSelect from '@/components/bases/form/MsSelect.vue'
@@ -234,6 +254,50 @@ const emit = defineEmits(['selection-changed', 'action', 'update:currentPage', '
 const tableWrapperRef = ref(null)
 const dataGridRef = ref(null)
 
+// Column pin state - stores the index of pinned column (all columns up to this index will be sticky)
+const pinnedColumnIndex = ref(0)
+const hoveredHeaderColumn = ref(null)
+
+// Get pinned column dataField for display
+const pinnedColumn = computed(() => {
+  if (props.columns.length === 0) return null
+  return props.columns[pinnedColumnIndex.value]?.dataField
+})
+
+// Initialize pinned column to first column (index 0)
+watch(() => props.columns, (cols) => {
+  if (cols && cols.length > 0 && pinnedColumnIndex.value === null) {
+    pinnedColumnIndex.value = 0
+  }
+}, { immediate: true })
+
+// Handle pin column click
+const onPinColumn = (dataField) => {
+  const clickedIndex = props.columns.findIndex(col => col.dataField === dataField)
+  if (clickedIndex === -1) return
+  
+  // If clicking on currently pinned column, reset to first column
+  if (clickedIndex === pinnedColumnIndex.value) {
+    pinnedColumnIndex.value = 0
+  } else {
+    pinnedColumnIndex.value = clickedIndex
+  }
+}
+
+// Get CSS class for column
+const getColumnClass = (dataField, index) => {
+  const isPinned = index <= pinnedColumnIndex.value
+  const isLastPinned = index === pinnedColumnIndex.value
+  let classes = 'cell-column'
+  if (isPinned) {
+    classes += ' pinned-column'
+  }
+  if (isLastPinned) {
+    classes += ' last-pinned-column'
+  }
+  return classes
+}
+
 // Floating action overlay state
 const hoveredRowData = ref(null)
 const hoveredRowTop = ref(0)
@@ -248,7 +312,7 @@ const actionOverlayStyle = computed(() => ({
 
 const computedActionButtons = computed(() => {
   if (!hoveredRowData.value) return props.actionButtons
-  
+
   return props.actionButtons
     .filter(action => {
       // Check visibility condition if provided
@@ -259,15 +323,15 @@ const computedActionButtons = computed(() => {
     })
     .map(action => {
       // Resolve dynamic title
-      const title = typeof action.title === 'function' 
-        ? action.title(hoveredRowData.value) 
+      const title = typeof action.title === 'function'
+        ? action.title(hoveredRowData.value)
         : action.title
-      
+
       // Resolve dynamic icon
-      const icon = typeof action.icon === 'function' 
-        ? action.icon(hoveredRowData.value) 
+      const icon = typeof action.icon === 'function'
+        ? action.icon(hoveredRowData.value)
         : action.icon
-      
+
       return { ...action, title, icon }
     })
 })
@@ -428,6 +492,31 @@ onBeforeUnmount(() => {
 
 .action-btn:hover {
   background: #e0e0e0;
+}
+
+/* Header with Pin Icon */
+.header-with-pin {
+  width: 100%;
+  cursor: default;
+}
+
+.header-with-pin .header-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-with-pin .pin-icon {
+  flex-shrink: 0;
+  cursor: pointer;
+  margin-left: 8px;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.header-with-pin .pin-icon:hover {
+  opacity: 1;
 }
 
 /* Pagination */
@@ -598,6 +687,25 @@ onBeforeUnmount(() => {
 
 .base-table-wrapper .dx-datagrid-content-fixed .dx-header-row td {
   background: #f6f6f6 !important;
+}
+
+/* Remove border/shadow from fixed columns */
+.base-table-wrapper .dx-datagrid-content-fixed .dx-pointer-events-none {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.base-table-wrapper .dx-datagrid-content-fixed::after {
+  display: none !important;
+}
+
+.base-table-wrapper .dx-datagrid .dx-datagrid-content-fixed {
+  box-shadow: none !important;
+}
+
+/* Last pinned column has a subtle border */
+.base-table-wrapper .last-pinned-column {
+  border-right: 1px solid #e0e0e0 !important;
 }
 
 /* Action column fixed right - show on hover */

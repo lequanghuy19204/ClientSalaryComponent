@@ -19,53 +19,76 @@
     <div class="page-content d-flex flex-column flex-grow-1 overflow-hidden bg-white rounded-1">
       <!-- Filter Section -->
       <div class="page-filter d-flex align-items-center justify-content-between flex-shrink-0 bg-white">
-        <!-- Search Input -->
-        <div class="filter-search d-flex align-items-center overflow-hidden bg-white rounded-1">
-          <div class="search-icon-wrapper d-flex align-items-center justify-content-center">
-            <span class="icon d-inline-block flex-shrink-0 icon-search"></span>
+        <!-- Selection Bar - hiển thị khi có item được chọn -->
+        <template v-if="selectedItems.length > 0">
+          <div class="selection-bar d-flex align-items-center">
+            <div class="d-flex align-items-center">
+              <span>Đã chọn</span>
+              <b class="selected-amount">{{ selectedItems.length }}</b>
+            </div>
+            <div class="deselect-btn" @click="clearSelection">Bỏ chọn</div>
+            <MsButton
+              icon="icon-mi-plus"
+              variant="secondary"
+              class="btn-add-to-list"
+              @click="addSelectedToList"
+            >
+              Đưa vào danh sách sử dụng
+            </MsButton>
           </div>
-          <MsInput
-            v-model="searchText"
-            placeholder="Tìm kiếm"
-            class="search-input-wrapper"
-          />
-        </div>
+        </template>
 
-        <!-- Filter Controls -->
-        <div class="filter-controls d-flex align-items-center gap-2">
-          <!-- Tất cả loại thành phần -->
-          <MsSelect
-            v-model="selectedType"
-            :options="typeOptions"
-            placeholder="Tất cả loại thành phần"
-            size="small"
-            :no-scroll="true"
-            class="filter-type-select"
-          />
+        <!-- Normal Filter - hiển thị khi không có item được chọn -->
+        <template v-else>
+          <!-- Search Input -->
+          <div class="filter-search d-flex align-items-center overflow-hidden bg-white rounded-1">
+            <div class="search-icon-wrapper d-flex align-items-center justify-content-center">
+              <span class="icon d-inline-block flex-shrink-0 icon-search"></span>
+            </div>
+            <MsInput
+              v-model="searchText"
+              placeholder="Tìm kiếm"
+              class="search-input-wrapper"
+            />
+          </div>
 
-          <!-- Filter Button -->
-          <MsButton
-            icon="icon-mi-filter"
-            variant="text"
-            class="filter-btn"
-            title="Bộ lọc"
-          />
+          <!-- Filter Controls -->
+          <div class="filter-controls d-flex align-items-center gap-2">
+            <!-- Tất cả loại thành phần -->
+            <MsSelect
+              v-model="selectedType"
+              :options="typeOptions"
+              placeholder="Tất cả loại thành phần"
+              size="small"
+              :no-scroll="true"
+              class="filter-type-select"
+            />
 
-          <!-- Setting Button -->
-          <MsButton
-            icon="icon-mi-setting"
-            variant="text"
-            class="filter-btn"
-            title="Thiết lập"
-          />
-        </div>
+            <!-- Filter Button -->
+            <MsButton
+              icon="icon-mi-filter"
+              variant="text"
+              class="filter-btn"
+              title="Bộ lọc"
+            />
+
+            <!-- Column Config Button -->
+            <MsColumnConfig
+              :columns="tableColumns"
+              :default-columns="defaultColumns"
+              storage-key="system-salary-category-columns"
+              @update:columns="onColumnsChange"
+            />
+          </div>
+        </template>
       </div>
 
       <!-- Table Section -->
       <BaseDataGrid
         ref="dataGridRef"
+        :key="gridKey"
         :data-source="systemCategories"
-        :columns="tableColumns"
+        :columns="visibleColumns"
         key-expr="salaryCompositionSystemId"
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
@@ -76,6 +99,7 @@
         :action-buttons="actionButtons"
         :action-column-width="50"
         @action="onAction"
+        @selection-changed="onSelectionChanged"
       />
     </div>
   </div>
@@ -103,16 +127,29 @@
     :loading="isProcessing"
     @confirm="confirmOverwrite"
   />
+
+  <!-- Dialog xác nhận đưa nhiều thành phần vào danh sách -->
+  <MsConfirmDialog
+    v-model="showBulkConfirmDialog"
+    title="Xác nhận"
+    :message="bulkConfirmDialogMessage"
+    confirm-text="Đồng ý"
+    cancel-text="Hủy bỏ"
+    confirm-variant="primary"
+    :loading="isProcessing"
+    @confirm="confirmBulkMove"
+  />
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseDataGrid from '@/components/bases/data/BaseDataGrid.vue'
 import MsButton from '@/components/bases/ui/MsButton.vue'
 import MsInput from '@/components/bases/form/MsInput.vue'
 import MsSelect from '@/components/bases/form/MsSelect.vue'
 import MsConfirmDialog from '@/components/bases/ui/MsConfirmDialog.vue'
+import MsColumnConfig from '@/components/bases/ui/MsColumnConfig.vue'
 import { salaryCompositionSystemApi } from '@/api'
 import { useToast } from '@/composables'
 
@@ -123,10 +160,13 @@ const searchText = ref('')
 const selectedType = ref(null)
 const loading = ref(false)
 const systemCategories = ref([])
+const selectedItems = ref([])
+const dataGridRef = ref(null)
 
 // Dialog states
 const showConfirmDialog = ref(false)
 const showOverwriteDialog = ref(false)
+const showBulkConfirmDialog = ref(false)
 const isProcessing = ref(false)
 const selectedItem = ref(null)
 
@@ -139,6 +179,14 @@ const confirmDialogMessage = computed(() => {
 const overwriteDialogMessage = computed(() => {
   if (!selectedItem.value) return ''
   return `Đã tồn tại một thành phần lương trùng mã "<strong>${selectedItem.value.salaryCompositionSystemCode}</strong>" trên danh sách. Chương trình sẽ cập nhật thông tin của thành phần lương mặc định vào bản ghi hiện có. Bạn có muốn tiếp tục không?`
+})
+
+const bulkConfirmDialogMessage = computed(() => {
+  if (selectedItems.value.length === 0) return ''
+  if (selectedItems.value.length === 1) {
+    return `Bạn có chắc chắn muốn đưa thành phần lương mặc định "<strong>${selectedItems.value[0].salaryCompositionSystemName}</strong>" vào danh sách sử dụng không?`
+  }
+  return 'Bạn có chắc chắn muốn đưa các thành phần lương mặc định đã chọn vào danh sách sử dụng không?'
 })
 
 // Filter options
@@ -211,19 +259,41 @@ const transformData = (items) => {
 }
 
 // Table columns - 12 cột (mapped to display fields)
-const tableColumns = [
-  { dataField: 'salaryCompositionSystemCode', caption: 'Mã thành phần', width: 150, minWidth: 120 },
-  { dataField: 'salaryCompositionSystemName', caption: 'Tên thành phần', width: 200, minWidth: 150 },
-  { dataField: 'displayType', caption: 'Loại thành phần', width: 150, minWidth: 120 },
-  { dataField: 'displayNature', caption: 'Tính chất', width: 120, minWidth: 100 },
-  { dataField: 'displayTaxable', caption: 'Chịu thuế', width: 150, minWidth: 100 },
-  { dataField: 'displayTaxDeduction', caption: 'Giảm trừ khi tính thuế', width: 180, minWidth: 150 },
-  { dataField: 'displayQuota', caption: 'Định mức', width: 120, minWidth: 100 },
-  { dataField: 'displayValueType', caption: 'Kiểu giá trị', width: 120, minWidth: 100 },
-  { dataField: 'salaryCompositionSystemValueFormula', caption: 'Giá trị', width: 150, minWidth: 100 },
-  { dataField: 'salaryCompositionSystemDescription', caption: 'Mô tả', width: 200, minWidth: 150 },
-  { dataField: 'displayShowOnPayslip', caption: 'Hiển thị trên phiếu lương', width: 180, minWidth: 150 }
+const defaultColumns = [
+  { dataField: 'salaryCompositionSystemCode', caption: 'Mã thành phần', width: 150, minWidth: 120, visible: true },
+  { dataField: 'salaryCompositionSystemName', caption: 'Tên thành phần', width: 200, minWidth: 150, visible: true },
+  { dataField: 'displayType', caption: 'Loại thành phần', width: 150, minWidth: 120, visible: true },
+  { dataField: 'displayNature', caption: 'Tính chất', width: 120, minWidth: 100, visible: true },
+  { dataField: 'displayTaxable', caption: 'Chịu thuế', width: 150, minWidth: 100, visible: true },
+  { dataField: 'displayTaxDeduction', caption: 'Giảm trừ khi tính thuế', width: 180, minWidth: 150, visible: true },
+  { dataField: 'displayQuota', caption: 'Định mức', width: 120, minWidth: 100, visible: true },
+  { dataField: 'displayValueType', caption: 'Kiểu giá trị', width: 120, minWidth: 100, visible: true },
+  { dataField: 'salaryCompositionSystemValueFormula', caption: 'Giá trị', width: 150, minWidth: 100, visible: true },
+  { dataField: 'salaryCompositionSystemDescription', caption: 'Mô tả', width: 200, minWidth: 150, visible: true },
+  { dataField: 'displayShowOnPayslip', caption: 'Hiển thị trên phiếu lương', width: 180, minWidth: 150, visible: true }
 ]
+
+const loadSavedColumns = () => {
+  const saved = localStorage.getItem('system-salary-category-columns')
+  if (saved) {
+    try {
+      return JSON.parse(saved)
+    } catch {
+      return defaultColumns
+    }
+  }
+  return defaultColumns
+}
+
+const tableColumns = ref(loadSavedColumns())
+
+const visibleColumns = computed(() => tableColumns.value.filter(c => c.visible !== false))
+
+const gridKey = computed(() => tableColumns.value.map(c => c.dataField).join('-'))
+
+const onColumnsChange = (newColumns) => {
+  tableColumns.value = newColumns
+}
 
 // Action buttons - chỉ 1 nút thêm
 const actionButtons = [
@@ -246,9 +316,14 @@ const pageSizeSelectOptions = [
 const fetchSystemCategories = async () => {
   loading.value = true
   try {
-    const data = await salaryCompositionSystemApi.getAll()
-    systemCategories.value = transformData(data)
-    totalRecords.value = systemCategories.value.length
+    const result = await salaryCompositionSystemApi.getPaged({
+      pageNumber: currentPage.value,
+      pageSize: pageSize.value,
+      searchText: searchText.value || '',
+      type: selectedType.value
+    })
+    systemCategories.value = transformData(result.data)
+    totalRecords.value = result.totalRecords
   } catch (error) {
     console.error('Error fetching system categories:', error)
     toast.error('Có lỗi khi tải dữ liệu')
@@ -256,6 +331,16 @@ const fetchSystemCategories = async () => {
     loading.value = false
   }
 }
+
+// Watch for pagination and filter changes
+watch([currentPage, pageSize], () => {
+  fetchSystemCategories()
+})
+
+watch([searchText, selectedType], () => {
+  currentPage.value = 1
+  fetchSystemCategories()
+})
 
 // Handle action - show confirm dialog first
 const onAction = async ({ action, data }) => {
@@ -272,7 +357,7 @@ const confirmMove = async () => {
   isProcessing.value = true
   try {
     const checkResult = await salaryCompositionSystemApi.checkExists(selectedItem.value.salaryCompositionSystemId)
-    
+
     if (checkResult.exists) {
       showConfirmDialog.value = false
       showOverwriteDialog.value = true
@@ -312,6 +397,40 @@ const confirmOverwrite = async () => {
 
 const goBack = () => {
   router.push('/payroll/salarycomposition')
+}
+
+// Selection handlers
+const onSelectionChanged = (items) => {
+  selectedItems.value = items
+}
+
+const clearSelection = () => {
+  dataGridRef.value?.clearSelection()
+  selectedItems.value = []
+}
+
+const addSelectedToList = () => {
+  if (selectedItems.value.length === 0) return
+  showBulkConfirmDialog.value = true
+}
+
+const confirmBulkMove = async () => {
+  if (selectedItems.value.length === 0) return
+
+  isProcessing.value = true
+  try {
+    const ids = selectedItems.value.map(item => item.salaryCompositionSystemId)
+    await salaryCompositionSystemApi.moveMultiple(ids)
+    toast.success(`Đã thêm ${selectedItems.value.length} thành phần lương vào danh sách sử dụng`)
+    showBulkConfirmDialog.value = false
+    clearSelection()
+    await fetchSystemCategories()
+  } catch (error) {
+    console.error('Error moving to composition:', error)
+    toast.error(error.response?.data?.message || 'Có lỗi xảy ra')
+  } finally {
+    isProcessing.value = false
+  }
 }
 
 onMounted(() => {
@@ -356,12 +475,12 @@ onMounted(() => {
 /* Filter Section */
 .page-filter {
   padding: 0 16px;
-  height: 64px;
+  height: 61px;
 }
 
 /* Search Input */
 .filter-search {
-  width: 240px;
+  width: 300px;
   height: 36px;
   border: 1px solid #e0e0e0;
 }
@@ -402,5 +521,27 @@ onMounted(() => {
   height: 36px;
   min-width: 36px;
   padding: 0;
+}
+
+/* Selection Bar */
+.selection-bar {
+  gap: 16px;
+  font-size: 14px;
+}
+
+.selection-bar .selected-amount {
+  margin-left: 4px;
+}
+
+.selection-bar .deselect-btn {
+  color: #34b057;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.btn-add-to-list {
+  height: 36px;
+  padding: 0 16px 0 12px;
+  border-radius: 4px;
 }
 </style>

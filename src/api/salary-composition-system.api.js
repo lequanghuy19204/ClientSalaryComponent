@@ -20,6 +20,19 @@ class SalaryCompositionSystemApi extends BaseApi {
     const response = await httpClient.post(`${this.endpoint}/${id}/overwrite`)
     return response.data
   }
+
+  async moveMultiple(ids) {
+    const response = await httpClient.post(`${this.endpoint}/move-multiple`, { ids })
+    return response.data
+  }
+
+  async getPaged({ pageNumber = 1, pageSize = 15, searchText = '', type = null } = {}) {
+    const params = { pageNumber, pageSize }
+    if (searchText) params.searchText = searchText
+    if (type) params.type = type
+    const response = await httpClient.get(`${this.endpoint}/paged`, { params })
+    return response.data
+  }
 }
 
 export default new SalaryCompositionSystemApi()

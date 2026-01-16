@@ -86,12 +86,12 @@
             title="Bộ lọc"
           />
 
-          <!-- Setting Button -->
-          <MsButton
-            icon="icon-mi-setting"
-            variant="text"
-            class="filter-btn"
-            title="Thiết lập"
+          <!-- Column Config Button -->
+          <MsColumnConfig
+            :columns="tableColumns"
+            :default-columns="defaultColumns"
+            storage-key="salary-component-columns"
+            @update:columns="onColumnsChange"
           />
         </div>
       </div>
@@ -135,8 +135,9 @@
       <!-- Table Section - Using BaseDataGrid -->
       <BaseDataGrid
         ref="dataGridRef"
+        :key="gridKey"
         :data-source="salaryComponents"
-        :columns="tableColumns"
+        :columns="visibleColumns"
         key-expr="salaryCompositionId"
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
@@ -199,7 +200,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseDataGrid from '@/components/bases/data/BaseDataGrid.vue'
 import MsTree from '@/components/bases/data/MsTree.vue'
@@ -207,6 +208,7 @@ import MsButton from '@/components/bases/ui/MsButton.vue'
 import MsInput from '@/components/bases/form/MsInput.vue'
 import MsSelect from '@/components/bases/form/MsSelect.vue'
 import MsConfirmDialog from '@/components/bases/ui/MsConfirmDialog.vue'
+import MsColumnConfig from '@/components/bases/ui/MsColumnConfig.vue'
 import SalaryComponentForm from '@/views/SalaryComponentForm.vue'
 import salaryCompositionApi from '@/api/salary-composition.api'
 import { useOrganization, useToast } from '@/composables'
@@ -311,22 +313,44 @@ const statusOptions = [
 ]
 
 // Table columns configuration
-const tableColumns = [
-  { dataField: 'salaryCompositionCode', caption: 'Mã thành phần', width: 250, minWidth: 120 },
-  { dataField: 'salaryCompositionName', caption: 'Tên thành phần', width: 250, minWidth: 200 },
-  { dataField: 'unit', caption: 'Đơn vị áp dụng', width: 250, minWidth: 120 },
-  { dataField: 'salaryCompositionType', caption: 'Loại thành phần', width: 250, minWidth: 120 },
-  { dataField: 'salaryCompositionNature', caption: 'Tính chất', width: 150, minWidth: 100 },
-  { dataField: 'taxable', caption: 'Chịu thuế', width: 200, minWidth: 100 },
-  { dataField: 'taxDeduction', caption: 'Giảm trừ khi tính thuế', width: 180, minWidth: 150 },
-  { dataField: 'salaryCompositionQuota', caption: 'Định mức', width: 120, minWidth: 100 },
-  { dataField: 'salaryCompositionValueType', caption: 'Kiểu giá trị', width: 120, minWidth: 100 },
-  { dataField: 'value', caption: 'Giá trị', width: 120, minWidth: 100 },
-  { dataField: 'salaryCompositionDescription', caption: 'Mô tả', width: 200, minWidth: 150 },
-  { dataField: 'showOnPayslip', caption: 'Hiển thị trên phiếu lương', width: 200, minWidth: 150 },
-  { dataField: 'salaryCompositionSource', caption: 'Nguồn tạo', width: 120, minWidth: 100 },
-  { dataField: 'salaryCompositionStatus', caption: 'Trạng thái', width: 150, minWidth: 120, cellTemplate: 'statusTemplate' }
+const defaultColumns = [
+  { dataField: 'salaryCompositionCode', caption: 'Mã thành phần', width: 250, minWidth: 120, visible: true },
+  { dataField: 'salaryCompositionName', caption: 'Tên thành phần', width: 250, minWidth: 200, visible: true },
+  { dataField: 'unit', caption: 'Đơn vị áp dụng', width: 250, minWidth: 120, visible: true },
+  { dataField: 'salaryCompositionType', caption: 'Loại thành phần', width: 250, minWidth: 120, visible: true },
+  { dataField: 'salaryCompositionNature', caption: 'Tính chất', width: 150, minWidth: 100, visible: true },
+  { dataField: 'taxable', caption: 'Chịu thuế', width: 200, minWidth: 100, visible: true },
+  { dataField: 'taxDeduction', caption: 'Giảm trừ khi tính thuế', width: 180, minWidth: 150, visible: true },
+  { dataField: 'salaryCompositionQuota', caption: 'Định mức', width: 120, minWidth: 100, visible: true },
+  { dataField: 'salaryCompositionValueType', caption: 'Kiểu giá trị', width: 120, minWidth: 100, visible: true },
+  { dataField: 'value', caption: 'Giá trị', width: 120, minWidth: 100, visible: true },
+  { dataField: 'salaryCompositionDescription', caption: 'Mô tả', width: 200, minWidth: 150, visible: true },
+  { dataField: 'showOnPayslip', caption: 'Hiển thị trên phiếu lương', width: 200, minWidth: 150, visible: true },
+  { dataField: 'salaryCompositionSource', caption: 'Nguồn tạo', width: 120, minWidth: 100, visible: true },
+  { dataField: 'salaryCompositionStatus', caption: 'Trạng thái', width: 150, minWidth: 120, cellTemplate: 'statusTemplate', visible: true }
 ]
+
+const loadSavedColumns = () => {
+  const saved = localStorage.getItem('salary-component-columns')
+  if (saved) {
+    try {
+      return JSON.parse(saved)
+    } catch {
+      return defaultColumns
+    }
+  }
+  return defaultColumns
+}
+
+const tableColumns = ref(loadSavedColumns())
+
+const visibleColumns = computed(() => tableColumns.value.filter(c => c.visible !== false))
+
+const gridKey = computed(() => tableColumns.value.map(c => c.dataField).join('-'))
+
+const onColumnsChange = (newColumns) => {
+  tableColumns.value = newColumns
+}
 
 // Pagination state
 const currentPage = ref(1)
@@ -501,15 +525,37 @@ const mapDataForDisplay = (data) => {
 const fetchSalaryComponents = async () => {
   loading.value = true
   try {
-    const data = await salaryCompositionApi.getAll()
-    salaryComponents.value = mapDataForDisplay(data)
-    totalRecords.value = data.length
+    // Map status filter value to API format
+    let statusValue = null
+    if (selectedStatus.value === 'active') statusValue = 1
+    else if (selectedStatus.value === 'inactive') statusValue = 0
+
+    const result = await salaryCompositionApi.getPaged({
+      pageNumber: currentPage.value,
+      pageSize: pageSize.value,
+      searchText: searchText.value || '',
+      status: statusValue,
+      organizationIds: selectedUnits.value?.length ? selectedUnits.value : null
+    })
+    salaryComponents.value = mapDataForDisplay(result.data)
+    totalRecords.value = result.totalRecords
   } catch (error) {
     console.error('Error fetching salary components:', error)
   } finally {
     loading.value = false
   }
 }
+
+// Watch for filter changes to refetch data
+
+watch([currentPage, pageSize], () => {
+  fetchSalaryComponents()
+})
+
+watch([searchText, selectedStatus, selectedUnits], () => {
+  currentPage.value = 1
+  fetchSalaryComponents()
+}, { deep: true })
 
 onMounted(async () => {
   await fetchTree()
@@ -729,12 +775,12 @@ const goToSystemCategory = () => {
 /* Filter Section */
 .salary-filter {
   padding: 0 16px;
-  height: 64px;
+  height: 61px;
 }
 
 /* Search Input */
 .filter-search {
-  width: 240px;
+  width: 300px;
   height: 36px;
   border: 1px solid #e0e0e0;
 }
@@ -813,10 +859,6 @@ const goToSystemCategory = () => {
   color: #34b057;
   font-weight: 700;
   cursor: pointer;
-}
-
-.deselect-link:hover {
-  text-decoration: underline;
 }
 
 .selection-actions {

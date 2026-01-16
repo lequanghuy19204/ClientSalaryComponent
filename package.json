@@ -23,6 +23,7 @@
     "primevue": "^4.5.4",
     "prismjs": "^1.30.0",
     "vue": "^3.5.26",
+    "vue-draggable-next": "^2.3.0",
     "vue-prism-editor": "^2.0.0-alpha.2",
     "vue-router": "^4.6.4"
   },

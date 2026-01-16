@@ -34,4 +34,9 @@ export default class BaseApi {
     const response = await httpClient.patch(`${this.endpoint}/${id}`, data)
     return response.data
   }
+
+  async getPaged(params = {}) {
+    const response = await httpClient.get(`${this.endpoint}/paged`, { params })
+    return response.data
+  }
 }

@@ -177,6 +177,16 @@
   background-color: #34b057 !important;
 }
 
+.icon-mi-plus {
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -220px 0px;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -220px 0px;
+  width: 20px;
+  height: 20px;
+  background-color: #6e737a !important;
+}
+
 .icon-down-white {
   -webkit-mask: url('../icons/Icon1.svg') no-repeat -104px -7px;
   mask: url('../icons/Icon1.svg') no-repeat -104px -7px;
@@ -227,6 +237,16 @@
   mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
     no-repeat -180px -80px;
   background-color: #34b057 !important;
+  width: 20px;
+  height: 20px;
+}
+
+.icon-mi-uppin {
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -180px -80px;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -180px -80px;
+  background-color: #686c7b !important;
   width: 20px;
   height: 20px;
 }
@@ -384,4 +404,24 @@
   width: 20px;
   height: 20px;
   background-color: #fff !important;
+}
+
+.icon-mi-update {
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -260px -60px;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -260px -60px;
+  width: 20px;
+  height: 20px;
+  background-color: #6e737a !important;
+}
+
+.icon-mi-move {
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat 0 -100px;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat 0 -100px;
+  width: 20px;
+  height: 20px;
+  background-color: #6e737a !important;
 }

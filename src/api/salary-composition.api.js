@@ -22,6 +22,15 @@ class SalaryCompositionApi extends BaseApi {
     const response = await httpClient.patch(`${this.endpoint}/bulk-status`, { ids, status })
     return response.data
   }
+
+  async getPaged({ pageNumber = 1, pageSize = 15, searchText = '', status = null, organizationIds = null } = {}) {
+    const params = { pageNumber, pageSize }
+    if (searchText) params.searchText = searchText
+    if (status !== null) params.status = status
+    if (organizationIds?.length) params.organizationIds = organizationIds
+    const response = await httpClient.get(`${this.endpoint}/paged`, { params })
+    return response.data
+  }
 }
 
 export default new SalaryCompositionApi()
