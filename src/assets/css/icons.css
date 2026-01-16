@@ -167,6 +167,16 @@
   background-color: #fff !important;
 }
 
+.icon-mi-plus-primary {
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -220px 0px;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -220px 0px;
+  width: 20px;
+  height: 20px;
+  background-color: #34b057 !important;
+}
+
 .icon-down-white {
   -webkit-mask: url('../icons/Icon1.svg') no-repeat -104px -7px;
   mask: url('../icons/Icon1.svg') no-repeat -104px -7px;

@@ -21,7 +21,9 @@
     "devextreme-vue": "^25.2.3",
     "primeicons": "^7.0.0",
     "primevue": "^4.5.4",
+    "prismjs": "^1.30.0",
     "vue": "^3.5.26",
+    "vue-prism-editor": "^2.0.0-alpha.2",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {

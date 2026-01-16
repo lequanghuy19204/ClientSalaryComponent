@@ -154,11 +154,10 @@
         <div class="form-row d-flex align-items-center" v-if="formData.salaryCompositionNature !== 'other'">
           <label class="form-label-left flex-shrink-0"><b>Định mức</b></label>
           <div class="form-input-right">
-            <MsTextarea
+            <MsFormulaEditor
               v-model="formData.salaryCompositionQuota"
               placeholder="Tự động gợi ý công thức và tham số khi gõ"
-              :rows="2"
-              class="w-full formula-editor"
+              class="w-full"
             />
           </div>
         </div>
@@ -242,11 +241,10 @@
                   class="formula-container position-relative w-100"
                   v-if="formData.salaryCompositionValueCalculation === 'formula'"
                 >
-                  <MsTextarea
+                  <MsFormulaEditor
                     v-model="formData.salaryCompositionValueFormula"
                     placeholder="Tự động gợi ý công thức và tham số khi gõ"
-                    :rows="2"
-                    class="w-full formula-editor"
+                    class="w-full"
                   />
                 </div>
               </div>
@@ -260,22 +258,20 @@
                 <div class="tax-partial-row d-flex align-items-start">
                   <label class="tax-partial-field-label flex-shrink-0"><b>Phần chịu thuế</b></label>
                   <div class="tax-partial-input flex-grow-1">
-                    <MsTextarea
+                    <MsFormulaEditor
                       v-model="formData.salaryCompositionTaxablePart"
                       placeholder="Chỉ cần nhập giá trị cho 1 trong 2 phần chịu thuế và miễn thuế"
-                      :rows="2"
-                      class="w-full formula-editor"
+                      class="w-full"
                     />
                   </div>
                 </div>
                 <div class="tax-partial-row d-flex align-items-start">
                   <label class="tax-partial-field-label flex-shrink-0"><b>Phần miễn thuế</b></label>
                   <div class="tax-partial-input flex-grow-1">
-                    <MsTextarea
+                    <MsFormulaEditor
                       v-model="formData.salaryCompositionTaxExemptPart"
                       placeholder="Chỉ cần nhập giá trị cho 1 trong 2 phần chịu thuế và miễn thuế"
-                      :rows="2"
-                      class="w-full formula-editor"
+                      class="w-full"
                     />
                   </div>
                 </div>
@@ -350,6 +346,7 @@ import MsTextarea from '@/components/bases/form/MsTextarea.vue'
 import MsSelect from '@/components/bases/form/MsSelect.vue'
 import MsRadioButton from '@/components/bases/form/MsRadioButton.vue'
 import MsCheckbox from '@/components/bases/form/MsCheckbox.vue'
+import MsFormulaEditor from '@/components/bases/form/MsFormulaEditor.vue'
 import MsTree from '@/components/bases/data/MsTree.vue'
 import MsButton from '@/components/bases/ui/MsButton.vue'
 import MsConfirmDialog from '@/components/bases/ui/MsConfirmDialog.vue'

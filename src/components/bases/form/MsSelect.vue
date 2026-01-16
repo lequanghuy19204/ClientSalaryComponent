@@ -8,7 +8,7 @@
       :placeholder="placeholder"
       :disabled="disabled"
       :class="['ms-select', selectClass, sizeClass]"
-      :panelClass="'ms-select-panel'"
+      :panelClass="panelClasses"
       @change="onChange"
       @blur="onBlur"
       @focus="onFocus"
@@ -66,6 +66,10 @@ const props = defineProps({
     type: String,
     default: 'medium', // 'small', 'medium', 'large', 'full'
     validator: (value) => ['small', 'medium', 'large', 'full'].includes(value)
+  },
+  noScroll: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -84,6 +88,10 @@ const sizeClass = computed(() => {
     full: 'ms-select-full'
   }
   return sizes[props.size] || 'ms-select-medium'
+})
+
+const panelClasses = computed(() => {
+  return props.noScroll ? 'ms-select-panel ms-select-panel-no-scroll' : 'ms-select-panel'
 })
 
 const onChange = (event) => {
@@ -196,5 +204,11 @@ const onFocus = (event) => {
 .ms-select-panel .p-select-option.p-highlight {
   background: #eafbf2 !important;
   color: #34b057 !important;
+}
+
+/* No scroll variant */
+.ms-select-panel-no-scroll .p-select-list-container {
+  max-height: none !important;
+  overflow: visible !important;
 }
 </style>

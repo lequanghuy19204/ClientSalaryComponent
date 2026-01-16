@@ -21,6 +21,7 @@
             label="Danh mục của hệ thống"
             icon="icon-mi-rule"
             variant="outline"
+            @click="goToSystemCategory"
           />
           <!-- Thêm mới button -->
           <div class="btn-group d-flex">
@@ -199,6 +200,7 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import BaseDataGrid from '@/components/bases/data/BaseDataGrid.vue'
 import MsTree from '@/components/bases/data/MsTree.vue'
 import MsButton from '@/components/bases/ui/MsButton.vue'
@@ -209,6 +211,7 @@ import SalaryComponentForm from '@/views/SalaryComponentForm.vue'
 import salaryCompositionApi from '@/api/salary-composition.api'
 import { useOrganization, useToast } from '@/composables'
 
+const router = useRouter()
 const { tree: unitTreeData, fetchTree, flatList: orgFlatList } = useOrganization()
 const toast = useToast()
 
@@ -549,7 +552,7 @@ const onSingleStatusChange = (data, type) => {
 const confirmStatusChange = async () => {
   isChangingStatus.value = true
   const status = statusChangeType.value === 'stop' ? 0 : 1
-  
+
   try {
     if (isBulkStatusChange.value) {
       const ids = statusChangeTarget.value.map(r => r.salaryCompositionId)
@@ -584,21 +587,21 @@ const onBulkDelete = () => {
   } else {
     bulkDeleteType.value = 'all_manual'
   }
-  
+
   showBulkDeleteDialog.value = true
 }
 
 const confirmBulkDelete = async () => {
   isDeleting.value = true
-  
+
   try {
     const itemsToDelete = selectedRows.value.filter(r => r.salaryCompositionSource === 'Tự thêm')
-    
+
     if (itemsToDelete.length === 0) {
       showBulkDeleteDialog.value = false
       return
     }
-    
+
     const deletePromises = itemsToDelete.map(row => salaryCompositionApi.delete(row.salaryCompositionId))
     await Promise.all(deletePromises)
     toast.success('Xóa thành công')
@@ -633,7 +636,7 @@ const onAction = async ({ action, data }) => {
 
 const confirmDelete = async () => {
   if (!deleteTarget.value) return
-  
+
   isDeleting.value = true
   try {
     await salaryCompositionApi.delete(deleteTarget.value.salaryCompositionId)
@@ -676,6 +679,10 @@ const onFormSaved = async () => {
 
 const onFormDeleted = async () => {
   await fetchSalaryComponents()
+}
+
+const goToSystemCategory = () => {
+  router.push('/payroll/salarycomposition/system-category')
 }
 </script>
 
@@ -721,7 +728,7 @@ const onFormDeleted = async () => {
 
 /* Filter Section */
 .salary-filter {
-  padding: 16px 16px 12px 16px;
+  padding: 0 16px;
   height: 64px;
 }
 
