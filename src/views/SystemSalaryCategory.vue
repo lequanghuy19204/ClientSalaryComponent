@@ -75,23 +75,71 @@
         :show-actions="true"
         :action-buttons="actionButtons"
         :action-column-width="50"
+        @action="onAction"
       />
     </div>
   </div>
+
+  <!-- Dialog xác nhận thêm vào danh sách -->
+  <MsConfirmDialog
+    v-model="showConfirmDialog"
+    title="Xác nhận"
+    :message="confirmDialogMessage"
+    confirm-text="Đồng ý"
+    cancel-text="Hủy bỏ"
+    confirm-variant="primary"
+    :loading="isProcessing"
+    @confirm="confirmMove"
+  />
+
+  <!-- Dialog cảnh báo trùng mã -->
+  <MsConfirmDialog
+    v-model="showOverwriteDialog"
+    title="Xác nhận"
+    :message="overwriteDialogMessage"
+    confirm-text="Đồng ý"
+    cancel-text="Hủy bỏ"
+    confirm-variant="primary"
+    :loading="isProcessing"
+    @confirm="confirmOverwrite"
+  />
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseDataGrid from '@/components/bases/data/BaseDataGrid.vue'
 import MsButton from '@/components/bases/ui/MsButton.vue'
 import MsInput from '@/components/bases/form/MsInput.vue'
 import MsSelect from '@/components/bases/form/MsSelect.vue'
+import MsConfirmDialog from '@/components/bases/ui/MsConfirmDialog.vue'
+import { salaryCompositionSystemApi } from '@/api'
+import { useToast } from '@/composables'
 
 const router = useRouter()
+const toast = useToast()
 
 const searchText = ref('')
 const selectedType = ref(null)
+const loading = ref(false)
+const systemCategories = ref([])
+
+// Dialog states
+const showConfirmDialog = ref(false)
+const showOverwriteDialog = ref(false)
+const isProcessing = ref(false)
+const selectedItem = ref(null)
+
+// Dialog messages
+const confirmDialogMessage = computed(() => {
+  if (!selectedItem.value) return ''
+  return `Bạn có chắc chắn muốn đưa thành phần lương mặc định "<strong>${selectedItem.value.salaryCompositionSystemName}</strong>" vào danh sách sử dụng không?`
+})
+
+const overwriteDialogMessage = computed(() => {
+  if (!selectedItem.value) return ''
+  return `Đã tồn tại một thành phần lương trùng mã "<strong>${selectedItem.value.salaryCompositionSystemCode}</strong>" trên danh sách. Chương trình sẽ cập nhật thông tin của thành phần lương mặc định vào bản ghi hiện có. Bạn có muốn tiếp tục không?`
+})
 
 // Filter options
 const typeOptions = [
@@ -107,20 +155,74 @@ const typeOptions = [
   { value: 'other', label: 'Khác' }
 ]
 
-// Table columns - 12 cột
+// Mapping for display
+const typeLabels = {
+  employee_info: 'Thông tin nhân viên',
+  attendance: 'Chấm công',
+  revenue: 'Doanh số',
+  kpi: 'KPI',
+  product: 'Sản phẩm',
+  salary: 'Lương',
+  pit: 'Thuế TNCN',
+  insurance_union: 'Bảo hiểm - Công đoàn',
+  other: 'Khác'
+}
+
+const natureLabels = {
+  income: 'Thu nhập',
+  deduction: 'Khấu trừ',
+  other: 'Khác'
+}
+
+const taxOptionLabels = {
+  taxable: 'Có',
+  tax_exempt_full: 'Miễn thuế toàn phần',
+  tax_exempt_partial: 'Miễn thuế một phần'
+}
+
+const valueTypeLabels = {
+  currency: 'Tiền tệ',
+  number: 'Số',
+  percent: 'Phần trăm',
+  text: 'Chữ',
+  date: 'Ngày'
+}
+
+const showOnPayslipLabels = {
+  yes: 'Có',
+  no: 'Không',
+  if_not_zero: 'Nếu khác 0'
+}
+
+// Transform API data for display
+const transformData = (items) => {
+  return items.map(item => ({
+    ...item,
+    displayType: typeLabels[item.salaryCompositionSystemType] || item.salaryCompositionSystemType,
+    displayNature: natureLabels[item.salaryCompositionSystemNature] || item.salaryCompositionSystemNature,
+    displayTaxable: item.salaryCompositionSystemTaxOption
+      ? taxOptionLabels[item.salaryCompositionSystemTaxOption] || ''
+      : '',
+    displayTaxDeduction: item.salaryCompositionSystemTaxDeduction ? 'Có' : 'Không',
+    displayValueType: valueTypeLabels[item.salaryCompositionSystemValueType] || item.salaryCompositionSystemValueType,
+    displayShowOnPayslip: showOnPayslipLabels[item.salaryCompositionSystemShowOnPayslip] || '',
+    displayQuota: item.salaryCompositionSystemQuota || ''
+  }))
+}
+
+// Table columns - 12 cột (mapped to display fields)
 const tableColumns = [
   { dataField: 'salaryCompositionSystemCode', caption: 'Mã thành phần', width: 150, minWidth: 120 },
   { dataField: 'salaryCompositionSystemName', caption: 'Tên thành phần', width: 200, minWidth: 150 },
-  { dataField: 'unitApply', caption: 'Đơn vị áp dụng', width: 150, minWidth: 120 },
-  { dataField: 'salaryCompositionSystemType', caption: 'Loại thành phần', width: 150, minWidth: 120 },
-  { dataField: 'salaryCompositionSystemNature', caption: 'Tính chất', width: 120, minWidth: 100 },
-  { dataField: 'taxable', caption: 'Chịu thuế', width: 120, minWidth: 100 },
-  { dataField: 'taxDeduction', caption: 'Giảm trừ khi tính thuế', width: 180, minWidth: 150 },
-  { dataField: 'quota', caption: 'Định mức', width: 120, minWidth: 100 },
-  { dataField: 'salaryCompositionSystemValueType', caption: 'Kiểu giá trị', width: 120, minWidth: 100 },
-  { dataField: 'value', caption: 'Giá trị', width: 120, minWidth: 100 },
+  { dataField: 'displayType', caption: 'Loại thành phần', width: 150, minWidth: 120 },
+  { dataField: 'displayNature', caption: 'Tính chất', width: 120, minWidth: 100 },
+  { dataField: 'displayTaxable', caption: 'Chịu thuế', width: 150, minWidth: 100 },
+  { dataField: 'displayTaxDeduction', caption: 'Giảm trừ khi tính thuế', width: 180, minWidth: 150 },
+  { dataField: 'displayQuota', caption: 'Định mức', width: 120, minWidth: 100 },
+  { dataField: 'displayValueType', caption: 'Kiểu giá trị', width: 120, minWidth: 100 },
+  { dataField: 'salaryCompositionSystemValueFormula', caption: 'Giá trị', width: 150, minWidth: 100 },
   { dataField: 'salaryCompositionSystemDescription', caption: 'Mô tả', width: 200, minWidth: 150 },
-  { dataField: 'showOnPayslip', caption: 'Hiển thị trên phiếu lương', width: 180, minWidth: 150 }
+  { dataField: 'displayShowOnPayslip', caption: 'Hiển thị trên phiếu lương', width: 180, minWidth: 150 }
 ]
 
 // Action buttons - chỉ 1 nút thêm
@@ -140,45 +242,81 @@ const pageSizeSelectOptions = [
   { value: 100, label: '100' }
 ]
 
-// Mock data - 2 hàng dữ liệu mẫu
-const systemCategories = ref([
-  {
-    salaryCompositionSystemId: '1',
-    salaryCompositionSystemCode: 'LUONG_CO_BAN',
-    salaryCompositionSystemName: 'Lương cơ bản',
-    unitApply: 'Tất cả đơn vị',
-    salaryCompositionSystemType: 'Lương',
-    salaryCompositionSystemNature: 'Thu nhập',
-    taxable: 'Có',
-    taxDeduction: 'Không',
-    quota: '',
-    salaryCompositionSystemValueType: 'Tiền tệ',
-    value: '',
-    salaryCompositionSystemDescription: 'Lương cơ bản theo hợp đồng',
-    showOnPayslip: 'Có'
-  },
-  {
-    salaryCompositionSystemId: '2',
-    salaryCompositionSystemCode: 'PHU_CAP_AN_TRUA',
-    salaryCompositionSystemName: 'Phụ cấp ăn trưa',
-    unitApply: 'Tất cả đơn vị',
-    salaryCompositionSystemType: 'Lương',
-    salaryCompositionSystemNature: 'Thu nhập',
-    taxable: 'Không',
-    taxDeduction: 'Có',
-    quota: '730.000',
-    salaryCompositionSystemValueType: 'Tiền tệ',
-    value: '730.000',
-    salaryCompositionSystemDescription: 'Phụ cấp ăn trưa hàng tháng',
-    showOnPayslip: 'Có'
+// Fetch data from API
+const fetchSystemCategories = async () => {
+  loading.value = true
+  try {
+    const data = await salaryCompositionSystemApi.getAll()
+    systemCategories.value = transformData(data)
+    totalRecords.value = systemCategories.value.length
+  } catch (error) {
+    console.error('Error fetching system categories:', error)
+    toast.error('Có lỗi khi tải dữ liệu')
+  } finally {
+    loading.value = false
   }
-])
+}
 
-totalRecords.value = systemCategories.value.length
+// Handle action - show confirm dialog first
+const onAction = async ({ action, data }) => {
+  if (action === 'add') {
+    selectedItem.value = data
+    showConfirmDialog.value = true
+  }
+}
+
+// Confirm move - check if code exists first
+const confirmMove = async () => {
+  if (!selectedItem.value) return
+
+  isProcessing.value = true
+  try {
+    const checkResult = await salaryCompositionSystemApi.checkExists(selectedItem.value.salaryCompositionSystemId)
+    
+    if (checkResult.exists) {
+      showConfirmDialog.value = false
+      showOverwriteDialog.value = true
+    } else {
+      await salaryCompositionSystemApi.move(selectedItem.value.salaryCompositionSystemId)
+      toast.success(`Đã thêm "${selectedItem.value.salaryCompositionSystemName}" vào danh sách sử dụng`)
+      showConfirmDialog.value = false
+      selectedItem.value = null
+      await fetchSystemCategories()
+    }
+  } catch (error) {
+    console.error('Error moving to composition:', error)
+    toast.error(error.response?.data?.message || 'Có lỗi xảy ra')
+  } finally {
+    isProcessing.value = false
+  }
+}
+
+// Confirm overwrite - update existing record
+const confirmOverwrite = async () => {
+  if (!selectedItem.value) return
+
+  isProcessing.value = true
+  try {
+    await salaryCompositionSystemApi.overwrite(selectedItem.value.salaryCompositionSystemId)
+    toast.success(`Đã cập nhật "${selectedItem.value.salaryCompositionSystemName}" vào danh sách sử dụng`)
+    showOverwriteDialog.value = false
+    selectedItem.value = null
+    await fetchSystemCategories()
+  } catch (error) {
+    console.error('Error overwriting composition:', error)
+    toast.error(error.response?.data?.message || 'Có lỗi xảy ra')
+  } finally {
+    isProcessing.value = false
+  }
+}
 
 const goBack = () => {
   router.push('/payroll/salarycomposition')
 }
+
+onMounted(() => {
+  fetchSystemCategories()
+})
 </script>
 
 <style scoped>
