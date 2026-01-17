@@ -132,6 +132,7 @@ const filteredColumns = computed({
   }
 })
 
+/** Bật/tắt popup cấu hình cột */
 const togglePopup = () => {
   if (!isOpen.value) {
     localColumns.value = props.columns.map(c => ({ ...c }))
@@ -140,10 +141,12 @@ const togglePopup = () => {
   isOpen.value = !isOpen.value
 }
 
+/** Đóng popup */
 const closePopup = () => {
   isOpen.value = false
 }
 
+/** Bật/tắt hiển thị cột */
 const toggleColumn = (col) => {
   const target = localColumns.value.find(c => c.dataField === col.dataField)
   if (target) {
@@ -151,6 +154,7 @@ const toggleColumn = (col) => {
   }
 }
 
+/** Khôi phục cấu hình mặc định */
 const resetToDefault = async () => {
   const defaults = props.defaultColumns.length > 0 ? props.defaultColumns : props.columns
   localColumns.value = defaults.map(c => ({
@@ -167,10 +171,12 @@ const resetToDefault = async () => {
   }
 }
 
+/** Xử lý khi kéo thả kết thúc */
 const onDragEnd = () => {
   // Drag end handled by v-model
 }
 
+/** Áp dụng thay đổi cấu hình */
 const applyChanges = async () => {
   isSaving.value = true
   try {
@@ -188,6 +194,7 @@ const applyChanges = async () => {
   }
 }
 
+/** Khởi tạo cấu hình từ server */
 const initConfig = async () => {
   if (loadConfig && props.storageKey && props.defaultColumns.length > 0) {
     const loaded = await loadConfig(props.defaultColumns)

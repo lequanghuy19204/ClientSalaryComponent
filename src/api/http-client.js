@@ -1,5 +1,9 @@
 import axios from 'axios'
 
+/**
+ * HTTP Client sử dụng Axios để gọi API
+ * Cấu hình baseURL, timeout và headers mặc định
+ */
 const httpClient = axios.create({
   baseURL: 'https://localhost:44303/api',
   timeout: 30000,
@@ -8,11 +12,18 @@ const httpClient = axios.create({
   }
 })
 
+/**
+ * Interceptor xử lý request trước khi gửi đi
+ */
 httpClient.interceptors.request.use(
   (config) => config,
   (error) => Promise.reject(error)
 )
 
+/**
+ * Interceptor xử lý response và lỗi
+ * Chuyển đổi các mã lỗi HTTP thành thông báo tiếng Việt
+ */
 httpClient.interceptors.response.use(
   (response) => response,
   (error) => {

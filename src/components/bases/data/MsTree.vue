@@ -131,7 +131,7 @@ const isSyncing = ref(false)
 const didFirstExpand = ref(false)
 const searchText = ref('')
 
-// Open dropdown programmatically
+/** Mở dropdown theo chương trình */
 function openDropdown() {
   const instance = dropDownBoxRef.value?.instance
   if (instance) {
@@ -315,7 +315,7 @@ watch(() => props.modelValue, (newVal) => {
   selectedValue.value = [...newVal]
 }, { deep: true })
 
-// Functions
+/** Chuyển đổi cây thành danh sách phẳng */
 function flattenTree(nodes, result = [], itemsKey = 'items', parentId = null) {
   if (!nodes) return result
   for (const node of nodes) {
@@ -334,11 +334,13 @@ function flattenTree(nodes, result = [], itemsKey = 'items', parentId = null) {
   return result
 }
 
+/** Xử lý khi nội dung TreeView sẵn sàng */
 function treeViewContentReady() {
   syncTreeViewSelection()
   expandRootNodesOnce()
 }
 
+/** Đồng bộ lựa chọn trong TreeView */
 function syncTreeViewSelection() {
   const treeView = treeViewRef.value?.instance
   if (!treeView) return
@@ -354,6 +356,7 @@ function syncTreeViewSelection() {
   }
 }
 
+/** Xử lý khi thay đổi lựa chọn item */
 function treeViewItemSelectionChanged(e) {
   if (isSyncing.value) return
   const treeView = e.component
@@ -367,6 +370,7 @@ function treeViewItemSelectionChanged(e) {
   emit('change', { value: keys, event: e })
 }
 
+/** Mở rộng các node gốc một lần */
 function expandRootNodesOnce() {
   if (didFirstExpand.value) return
   const treeView = treeViewRef.value?.instance
@@ -383,6 +387,7 @@ function expandRootNodesOnce() {
   }
 }
 
+/** Bật/tắt lựa chọn tất cả con */
 function toggleChildrenSelection(treeView, node, selected) {
   if (!node || !node.children || !node.children.length) return
 
@@ -406,6 +411,7 @@ function toggleChildrenSelection(treeView, node, selected) {
   }
 }
 
+/** Xóa một item khỏi bộ lọc */
 function removeFilterItem(index) {
   if (isSyncing.value) return
   isSyncing.value = true
@@ -441,6 +447,7 @@ function removeFilterItem(index) {
   })
 }
 
+/** Xử lý khi giá trị thay đổi */
 function onValueChanged(e) {
   if (isSyncing.value) return
   if (e.value === null || (Array.isArray(e.value) && e.value.length === 0)) {

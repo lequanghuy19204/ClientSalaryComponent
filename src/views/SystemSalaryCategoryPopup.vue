@@ -195,7 +195,7 @@ const showOnPayslipLabels = {
   if_not_zero: 'Nếu khác 0'
 }
 
-// Transform API data for display
+/** Chuyển đổi dữ liệu API để hiển thị */
 const transformData = (items) => {
   return items.map(item => ({
     ...item,
@@ -254,7 +254,7 @@ const overwriteDialogMessage = computed(() => {
   return 'Đã tồn tại một hoặc nhiều thành phần lương trùng mã trên danh sách. Chương trình sẽ cập nhật thông tin của thành phần lương mặc định vào bản ghi hiện có. Bạn có muốn tiếp tục không?'
 })
 
-// Fetch data from API
+/** Lấy danh sách danh mục hệ thống từ API */
 const fetchSystemCategories = async () => {
   loading.value = true
   try {
@@ -274,6 +274,7 @@ const fetchSystemCategories = async () => {
   }
 }
 
+/** Xử lý tìm kiếm */
 const onSearch = () => {
   currentPage.value = 1
   fetchSystemCategories()
@@ -297,6 +298,7 @@ watch(() => props.modelValue, (newVal) => {
   }
 })
 
+/** Đặt lại trạng thái popup về mặc định */
 const resetState = () => {
   searchText.value = ''
   selectedType.value = null
@@ -305,21 +307,25 @@ const resetState = () => {
   pageSize.value = 25
 }
 
+/** Xử lý khi thay đổi lựa chọn */
 const onSelectionChanged = (items) => {
   selectedItems.value = items
 }
 
+/** Xử lý đóng popup */
 const onClose = () => {
   if (!isProcessing.value) {
     emit('update:modelValue', false)
   }
 }
 
+/** Xử lý xác nhận chọn các mục */
 const onConfirm = () => {
   if (selectedItems.value.length === 0) return
   showConfirmDialog.value = true
 }
 
+/** Xác nhận đưa vào danh sách sử dụng */
 const confirmMove = async () => {
   if (selectedItems.value.length === 0) return
 
@@ -351,6 +357,7 @@ const confirmMove = async () => {
   }
 }
 
+/** Xác nhận ghi đè khi trùng mã */
 const confirmOverwrite = async () => {
   if (selectedItems.value.length === 0) return
 

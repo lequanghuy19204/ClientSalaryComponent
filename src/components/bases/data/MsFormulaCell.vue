@@ -37,6 +37,7 @@ const props = defineProps({
   }
 })
 
+/** Tô màu cú pháp cho công thức */
 const highlightedCode = computed(() => {
   if (!props.value || props.value === '-') return ''
   return Prism.highlight(props.value, Prism.languages.formula, 'formula')

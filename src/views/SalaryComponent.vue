@@ -372,6 +372,7 @@ const defaultColumns = [
   { dataField: 'salaryCompositionStatus', caption: 'Trạng thái', width: 150, minWidth: 120, cellTemplate: 'statusTemplate', visible: true }
 ]
 
+/** Tải cấu hình cột đã lưu từ localStorage */
 const loadSavedColumns = () => {
   const saved = localStorage.getItem('salary-component-columns')
   if (saved) {
@@ -391,10 +392,12 @@ const visibleColumns = computed(() => tableColumns.value.filter(c => c.visible !
 
 const gridKey = computed(() => tableColumns.value.map(c => c.dataField).join('-'))
 
+/** Xử lý sự kiện thay đổi cột */
 const onColumnsChange = (newColumns) => {
   tableColumns.value = newColumns
 }
 
+/** Xử lý khi cấu hình cột được tải */
 const onConfigLoaded = (loadedColumns) => {
   tableColumns.value = loadedColumns
   const pinned = loadedColumns.find(c => c.isPinned)
@@ -407,7 +410,7 @@ const onConfigLoaded = (loadedColumns) => {
   }
 }
 
-// Handle column pin change - save to server
+/** Xử lý ghim cột và lưu vào server */
 const onColumnPinned = async (dataField) => {
   pinnedColumn.value = dataField
   try {
@@ -417,7 +420,7 @@ const onColumnPinned = async (dataField) => {
   }
 }
 
-// Handle column resize - save to server
+/** Xử lý thay đổi kích thước cột và lưu vào server */
 const onColumnResized = async ({ dataField, width }) => {
   // Update local state
   const col = tableColumns.value.find(c => c.dataField === dataField)
@@ -512,7 +515,7 @@ const valueTypeMap = {
   date: 'Ngày'
 }
 
-// Hàm lấy tên đơn vị hiển thị theo kiểu MsTree
+/** Lấy tên đơn vị hiển thị theo kiểu MsTree */
 const getUnitDisplayNames = (unitIds) => {
   if (!unitIds || unitIds.length === 0 || !orgFlatList.value?.length) {
     return ''
@@ -583,6 +586,7 @@ const getUnitDisplayNames = (unitIds) => {
   return result.join(', ')
 }
 
+/** Chuyển đổi dữ liệu để hiển thị */
 const mapDataForDisplay = (data) => {
   return data.map(item => ({
     ...item,
@@ -601,6 +605,7 @@ const mapDataForDisplay = (data) => {
   }))
 }
 
+/** Lấy danh sách thành phần lương từ API */
 const fetchSalaryComponents = async () => {
   loading.value = true
   try {
@@ -625,6 +630,7 @@ const fetchSalaryComponents = async () => {
   }
 }
 
+/** Xử lý tìm kiếm */
 const onSearch = () => {
   currentPage.value = 1
   fetchSalaryComponents()
@@ -646,16 +652,19 @@ onMounted(async () => {
   await fetchSalaryComponents()
 })
 
+/** Xử lý khi thay đổi lựa chọn các dòng */
 const onSelectionChanged = (rows) => {
   selectedRows.value = rows
   console.log('Selected rows:', rows)
 }
 
+/** Xóa lựa chọn các dòng */
 const clearSelection = () => {
   selectedRows.value = []
   dataGridRef.value?.clearSelection()
 }
 
+/** Xử lý ngừng theo dõi hàng loạt */
 const onBulkStop = () => {
   if (selectedRows.value.length === 0) return
   statusChangeTarget.value = [...selectedRows.value]
@@ -664,6 +673,7 @@ const onBulkStop = () => {
   showStatusDialog.value = true
 }
 
+/** Xử lý kích hoạt theo dõi hàng loạt */
 const onBulkActive = () => {
   if (selectedRows.value.length === 0) return
   statusChangeTarget.value = [...selectedRows.value]
@@ -672,6 +682,7 @@ const onBulkActive = () => {
   showStatusDialog.value = true
 }
 
+/** Xử lý thay đổi trạng thái đơn lẻ */
 const onSingleStatusChange = (data, type) => {
   statusChangeTarget.value = data
   statusChangeType.value = type
@@ -679,6 +690,7 @@ const onSingleStatusChange = (data, type) => {
   showStatusDialog.value = true
 }
 
+/** Xác nhận thay đổi trạng thái */
 const confirmStatusChange = async () => {
   isChangingStatus.value = true
   const status = statusChangeType.value === 'stop' ? 0 : 1
@@ -704,6 +716,7 @@ const confirmStatusChange = async () => {
   }
 }
 
+/** Xử lý xóa hàng loạt */
 const onBulkDelete = () => {
   if (selectedRows.value.length === 0) return
 
@@ -721,6 +734,7 @@ const onBulkDelete = () => {
   showBulkDeleteDialog.value = true
 }
 
+/** Xác nhận xóa hàng loạt */
 const confirmBulkDelete = async () => {
   isDeleting.value = true
 
@@ -746,6 +760,7 @@ const confirmBulkDelete = async () => {
   }
 }
 
+/** Xử lý các hành động trên dòng (sửa, nhân bản, xóa, ngừng theo dõi) */
 const onAction = async ({ action, data }) => {
   if (action === 'edit') {
     formMode.value = 'edit'
@@ -769,6 +784,7 @@ const onAction = async ({ action, data }) => {
   }
 }
 
+/** Xác nhận xóa đơn lẻ */
 const confirmDelete = async () => {
   if (!deleteTarget.value) return
 
@@ -787,12 +803,14 @@ const confirmDelete = async () => {
   }
 }
 
+/** Chuyển đến form thêm mới */
 const goToAddForm = () => {
   formMode.value = 'add'
   editId.value = null
   showForm.value = true
 }
 
+/** Xử lý khi quay lại từ form */
 const onFormBack = async (payload) => {
   if (payload?.action === 'duplicate') {
     // Force remount form by hiding then showing
@@ -808,31 +826,38 @@ const onFormBack = async (payload) => {
   }
 }
 
+/** Xử lý khi lưu form thành công */
 const onFormSaved = async () => {
   await fetchSalaryComponents()
 }
 
+/** Xử lý khi xóa từ form thành công */
 const onFormDeleted = async () => {
   await fetchSalaryComponents()
 }
 
+/** Chuyển đến trang danh mục hệ thống */
 const goToSystemCategory = () => {
   router.push('/payroll/salarycomposition/system-category')
 }
 
+/** Mở popup chọn từ danh mục hệ thống */
 const openSystemCategoryPopup = () => {
   showDropdown.value = false
   showSystemCategoryPopup.value = true
 }
 
+/** Xử lý khi thêm thành công từ danh mục hệ thống */
 const onSystemCategoryAdded = async () => {
   await fetchSalaryComponents()
 }
 
+/** Bật/tắt dropdown */
 const toggleDropdown = () => {
   showDropdown.value = !showDropdown.value
 }
 
+/** Đóng dropdown */
 const closeDropdown = () => {
   showDropdown.value = false
 }

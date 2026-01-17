@@ -41,6 +41,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'change'])
 
+/** Bật/tắt trạng thái checkbox */
 const toggle = () => {
   if (props.disabled) return
   const newValue = !props.modelValue

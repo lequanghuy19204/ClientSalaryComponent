@@ -112,20 +112,24 @@ const dialogStyle = computed(() => ({
   minWidth: typeof props.width === 'number' ? `${props.width}px` : props.width
 }))
 
+/** Xử lý khi nhấn nút xác nhận */
 const onConfirm = () => {
   emit('confirm')
 }
 
+/** Xử lý khi nhấn nút hủy */
 const onCancel = () => {
   emit('update:modelValue', false)
   emit('cancel')
 }
 
+/** Xử lý khi nhấn nút giữa (không lưu) */
 const onMiddle = () => {
   emit('update:modelValue', false)
   emit('middle')
 }
 
+/** Xử lý khi click vào overlay */
 const onOverlayClick = () => {
   if (props.closeOnOverlay && !props.loading) {
     onCancel()

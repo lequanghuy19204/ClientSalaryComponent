@@ -61,14 +61,17 @@ const modelValue = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
+/** Xử lý sự kiện nhập liệu */
 const onInput = (event) => {
   emit('input', event)
 }
 
+/** Xử lý khi blur */
 const onBlur = (event) => {
   emit('blur', event)
 }
 
+/** Xử lý khi focus */
 const onFocus = (event) => {
   emit('focus', event)
 }

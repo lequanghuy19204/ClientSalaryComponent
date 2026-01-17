@@ -404,6 +404,7 @@ const showUnsavedDialog = ref(false)
 const nameInputRef = ref(null)
 const originalFormData = ref(null)
 
+/** Di chuyển focus đến input tiếp theo khi nhấn Enter */
 const focusNextInput = (e) => {
   if (e.target.tagName === 'TEXTAREA') return
 
@@ -419,25 +420,30 @@ const focusNextInput = (e) => {
   }
 }
 
+/** Bật/tắt menu chức năng khác */
 const toggleMoreMenu = () => {
   showMoreMenu.value = !showMoreMenu.value
 }
 
+/** Đóng menu chức năng khác khi click bên ngoài */
 const closeMoreMenu = (e) => {
   if (!e.target.closest('.more-dropdown-wrapper')) {
     showMoreMenu.value = false
   }
 }
 
+/** Quay lại trang danh sách */
 const goBack = () => {
   emit('back')
 }
 
+/** Kiểm tra form đã thay đổi hay chưa */
 const hasFormChanged = () => {
   if (!originalFormData.value) return false
   return JSON.stringify(formData) !== JSON.stringify(originalFormData.value)
 }
 
+/** Kiểm tra dữ liệu chưa lưu trước khi quay lại */
 const checkUnsavedAndGoBack = () => {
   if (hasFormChanged()) {
     showUnsavedDialog.value = true
@@ -446,30 +452,36 @@ const checkUnsavedAndGoBack = () => {
   }
 }
 
+/** Xử lý hủy dialog dữ liệu chưa lưu */
 const handleUnsavedCancel = () => {
   showUnsavedDialog.value = false
 }
 
+/** Xử lý không lưu và quay lại */
 const handleUnsavedNoSave = () => {
   showUnsavedDialog.value = false
   goBack()
 }
 
+/** Xử lý lưu dữ liệu từ dialog chưa lưu */
 const handleUnsavedSave = async () => {
   showUnsavedDialog.value = false
   await handleSave()
 }
 
+/** Xóa các trường thuế một phần */
 const clearTaxPartialFields = () => {
   formData.salaryCompositionTaxablePart = ''
   formData.salaryCompositionTaxExemptPart = ''
 }
 
+/** Xử lý nhân bản thành phần lương */
 const handleDuplicate = () => {
   showMoreMenu.value = false
   emit('back', { action: 'duplicate', id: props.editId })
 }
 
+/** Xử lý xóa thành phần lương */
 const handleDelete = async () => {
   showMoreMenu.value = false
   if (!props.editId) return
@@ -497,6 +509,7 @@ onUnmounted(() => {
   document.removeEventListener('click', closeMoreMenu)
 })
 
+/** Loại bỏ dấu tiếng Việt khỏi chuỗi */
 const removeVietnameseDiacritics = (str) => {
   const diacriticsMap = {
     à: 'a',
@@ -575,6 +588,7 @@ const removeVietnameseDiacritics = (str) => {
     .join('')
 }
 
+/** Tự động sinh mã thành phần từ tên */
 const generateCodeFromName = (name) => {
   if (!name) return ''
 
@@ -614,21 +628,25 @@ watch(
   },
 )
 
+/** Xử lý khi nhập mã thành phần */
 const onCodeInput = () => {
   isCodeManuallyEdited.value = true
   validateCodeRealtime()
 }
 
+/** Kiểm tra chuỗi có chứa dấu tiếng Việt */
 const hasVietnameseDiacritics = (str) => {
   const diacriticsPattern = /[àáảãạăằắẳẵặâầấẩẫậđèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵ]/i
   return diacriticsPattern.test(str)
 }
 
+/** Kiểm tra chuỗi có chứa ký tự không hợp lệ */
 const hasInvalidCharacters = (str) => {
   const validPattern = /^[A-Za-z0-9_]*$/
   return !validPattern.test(str)
 }
 
+/** Validate mã thành phần theo thời gian thực */
 const validateCodeRealtime = () => {
   if (!formData.salaryCompositionCode) {
     formErrors.salaryCompositionCode = ''
@@ -652,6 +670,7 @@ const formErrors = reactive({
   salaryCompositionNature: '',
 })
 
+/** Xóa tất cả lỗi validate */
 const clearErrors = () => {
   formErrors.salaryCompositionName = ''
   formErrors.salaryCompositionCode = ''
@@ -659,6 +678,7 @@ const clearErrors = () => {
   formErrors.salaryCompositionNature = ''
 }
 
+/** Validate toàn bộ form trước khi lưu */
 const validateForm = () => {
   clearErrors()
   let isValid = true
@@ -767,10 +787,12 @@ const getSourceLabel = computed(() => {
   return source ? source.label : 'Tự thêm'
 })
 
+/** Xử lý hủy form */
 const handleCancel = () => {
   checkUnsavedAndGoBack()
 }
 
+/** Xử lý lưu thành phần lương */
 const handleSave = async () => {
   if (!validateForm()) {
     return
@@ -788,6 +810,7 @@ const handleSave = async () => {
   }
 }
 
+/** Xử lý lưu và thêm mới thành phần lương */
 const handleSaveAndAdd = async () => {
   if (!validateForm()) {
     return

@@ -272,7 +272,7 @@ watch(() => props.columns, (cols) => {
   }
 }, { immediate: true })
 
-// Handle pin column click
+/** Xử lý khi click ghim cột - nếu click vào cột đang ghim thì reset về cột đầu, ngược lại ghim cột được click */
 const onPinColumn = (dataField) => {
   const clickedIndex = props.columns.findIndex(col => col.dataField === dataField)
   if (clickedIndex === -1) return
@@ -287,7 +287,7 @@ const onPinColumn = (dataField) => {
   }
 }
 
-// Get CSS class for column
+/** Lấy class CSS cho cột - xác định cột có được ghim và có phải cột ghim cuối cùng không */
 const getColumnClass = (dataField, index) => {
   const isPinned = index <= pinnedColumnIndex.value
   const isLastPinned = index === pinnedColumnIndex.value
@@ -339,7 +339,7 @@ const computedActionButtons = computed(() => {
     })
 })
 
-// Row hover handlers
+/** Xử lý khi dòng được render - đăng ký sự kiện hover cho dòng dữ liệu */
 const onRowPrepared = (e) => {
   if (e.rowType === 'data') {
     e.rowElement.addEventListener('mouseenter', () => onRowMouseEnter(e))
@@ -347,6 +347,7 @@ const onRowPrepared = (e) => {
   }
 }
 
+/** Xử lý khi di chuột vào dòng - lưu dữ liệu dòng và tính vị trí hiển thị overlay */
 const onRowMouseEnter = (e) => {
   if (hideTimeout) {
     clearTimeout(hideTimeout)
@@ -360,6 +361,7 @@ const onRowMouseEnter = (e) => {
   }
 }
 
+/** Xử lý khi di chuột rời khỏi dòng - ẩn overlay sau một khoảng delay nếu không hover vào overlay */
 const onRowMouseLeave = () => {
   hideTimeout = setTimeout(() => {
     if (!isOverlayHovered.value) {
@@ -368,6 +370,7 @@ const onRowMouseLeave = () => {
   }, 50)
 }
 
+/** Giữ overlay hiển thị khi hover - ngăn overlay bị ẩn khi di chuột từ dòng sang overlay */
 const keepOverlayVisible = () => {
   isOverlayHovered.value = true
   if (hideTimeout) {
@@ -376,6 +379,7 @@ const keepOverlayVisible = () => {
   }
 }
 
+/** Ẩn overlay - reset trạng thái hover và ẩn action buttons */
 const hideOverlay = () => {
   isOverlayHovered.value = false
   hoveredRowData.value = null
@@ -386,13 +390,14 @@ const totalPages = computed(() => Math.ceil(props.totalRecords / props.pageSize)
 const startRecord = computed(() => (props.currentPage - 1) * props.pageSize + 1)
 const endRecord = computed(() => Math.min(props.currentPage * props.pageSize, props.totalRecords))
 
-// Pagination methods
+/** Xử lý thay đổi số bản ghi/trang - reset về trang 1 và emit sự kiện */
 const onPageSizeChange = (newSize) => {
   emit('update:pageSize', newSize)
   emit('update:currentPage', 1)
   emit('page-size-change', newSize)
 }
 
+/** Chuyển đến trang trước - giảm currentPage và emit sự kiện page-change */
 const prevPage = () => {
   if (props.currentPage > 1) {
     const newPage = props.currentPage - 1
@@ -401,6 +406,7 @@ const prevPage = () => {
   }
 }
 
+/** Chuyển đến trang sau - tăng currentPage và emit sự kiện page-change */
 const nextPage = () => {
   if (props.currentPage < totalPages.value) {
     const newPage = props.currentPage + 1
@@ -413,11 +419,12 @@ const columnsWithTemplates = computed(() => {
   return props.columns.filter(col => col.cellTemplate)
 })
 
+/** Xử lý khi thay đổi lựa chọn dòng - emit danh sách các dòng được chọn */
 const onSelectionChanged = (e) => {
   emit('selection-changed', e.selectedRowsData)
 }
 
-// Handle column resize
+/** Xử lý thay đổi options của grid (resize cột) - emit sự kiện column-resized với debounce */
 let resizeDebounceTimer = null
 const onOptionChanged = (e) => {
   // Listen for column width changes
@@ -442,14 +449,15 @@ const onOptionChanged = (e) => {
   }
 }
 
+/** Xóa tất cả lựa chọn - bỏ chọn tất cả các dòng đang được chọn trong grid */
 const clearSelection = () => {
   dataGridRef.value?.instance?.clearSelection()
 }
 
-// Get current pinned column
+/** Lấy cột đang được ghim - trả về dataField của cột ghim hiện tại */
 const getPinnedColumn = () => pinnedColumn.value
 
-// Set pinned column from outside
+/** Đặt cột ghim từ bên ngoài - cho phép component cha điều khiển cột được ghim */
 const setPinnedColumn = (dataField) => {
   if (!dataField) {
     pinnedColumnIndex.value = 0

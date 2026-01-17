@@ -3,6 +3,11 @@ import { useRouter } from 'vue-router'
 import { salaryCompositionApi } from '@/api'
 import { useApiState } from './useApi'
 
+/**
+ * Composable quản lý thành phần lương
+ * Cung cấp các chức năng CRUD, điều hướng và xác thực cho thành phần lương
+ * @returns {Object} Trả về list, form, selected, loading, error và các hàm xử lý
+ */
 export function useSalaryComposition() {
   const router = useRouter()
   const { loading, error, withLoading, clearError } = useApiState()
@@ -10,6 +15,7 @@ export function useSalaryComposition() {
   const list = ref([])
   const selected = ref(null)
 
+  /** Dữ liệu mặc định của form thành phần lương */
   const defaultFormData = {
     salaryCompositionCode: '',
     salaryCompositionName: '',
@@ -36,10 +42,17 @@ export function useSalaryComposition() {
 
   const form = reactive({ ...defaultFormData })
 
+  /**
+   * Đặt lại form về giá trị mặc định
+   */
   const resetForm = () => {
     Object.assign(form, defaultFormData)
   }
 
+  /**
+   * Lấy danh sách tất cả thành phần lương từ API
+   * @returns {Promise<Array>} Danh sách thành phần lương
+   */
   const fetchList = async () => {
     return withLoading(async () => {
       list.value = await salaryCompositionApi.getAll()
@@ -47,6 +60,11 @@ export function useSalaryComposition() {
     })
   }
 
+  /**
+   * Lấy thông tin chi tiết thành phần lương theo ID và gán vào form
+   * @param {string} id - ID của thành phần lương
+   * @returns {Promise<Object>} Dữ liệu thành phần lương
+   */
   const fetchById = async (id) => {
     return withLoading(async () => {
       const data = await salaryCompositionApi.getById(id)
@@ -78,6 +96,10 @@ export function useSalaryComposition() {
     })
   }
 
+  /**
+   * Tạo mới thành phần lương
+   * @returns {Promise<Object>} Kết quả từ API
+   */
   const create = async () => {
     return withLoading(async () => {
       const dataToSend = prepareDataForSubmit()
@@ -86,6 +108,11 @@ export function useSalaryComposition() {
     })
   }
 
+  /**
+   * Cập nhật thành phần lương theo ID
+   * @param {string} id - ID của thành phần lương cần cập nhật
+   * @returns {Promise<boolean>} Trả về true nếu thành công
+   */
   const update = async (id) => {
     return withLoading(async () => {
       const dataToSend = prepareDataForSubmit()
@@ -94,6 +121,11 @@ export function useSalaryComposition() {
     })
   }
 
+  /**
+   * Chuẩn bị dữ liệu form trước khi gửi lên server
+   * Xử lý các trường hợp điều kiện dựa trên loại tính toán và tính chất
+   * @returns {Object} Dữ liệu đã được xử lý sẵn sàng gửi đi
+   */
   const prepareDataForSubmit = () => {
     const data = {
       salaryCompositionCode: form.salaryCompositionCode,
@@ -158,6 +190,11 @@ export function useSalaryComposition() {
     return data
   }
 
+  /**
+   * Xóa thành phần lương theo ID
+   * @param {string} id - ID của thành phần lương cần xóa
+   * @returns {Promise<boolean>} Trả về true nếu thành công
+   */
   const remove = async (id) => {
     return withLoading(async () => {
       await salaryCompositionApi.delete(id)
@@ -166,6 +203,11 @@ export function useSalaryComposition() {
     })
   }
 
+  /**
+   * Lưu thành phần lương (tạo mới hoặc cập nhật)
+   * @param {string|null} id - ID của thành phần lương, null nếu tạo mới
+   * @returns {Promise} Kết quả từ API
+   */
   const save = async (id = null) => {
     if (id) {
       return update(id)
@@ -173,24 +215,42 @@ export function useSalaryComposition() {
     return create()
   }
 
+  /**
+   * Lưu và tạo mới (sau khi lưu thành công sẽ reset form)
+   * @returns {Promise<Object>} Kết quả từ API
+   */
   const saveAndNew = async () => {
     const result = await create()
     resetForm()
     return result
   }
 
+  /**
+   * Điều hướng đến trang tạo mới thành phần lương
+   */
   const goToCreate = () => {
     router.push({ name: 'salary-component-create' })
   }
 
+  /**
+   * Điều hướng đến trang chỉnh sửa thành phần lương
+   * @param {string} id - ID của thành phần lương cần chỉnh sửa
+   */
   const goToEdit = (id) => {
     router.push({ name: 'salary-component-edit', params: { id } })
   }
 
+  /**
+   * Quay lại trang trước đó
+   */
   const goBack = () => {
     router.back()
   }
 
+  /**
+   * Xác thực dữ liệu form
+   * @returns {Object} Đối tượng chứa isValid và danh sách lỗi
+   */
   const validate = () => {
     const errors = {}
 

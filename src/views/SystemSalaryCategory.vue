@@ -258,7 +258,7 @@ const showOnPayslipLabels = {
   if_not_zero: 'Nếu khác 0'
 }
 
-// Transform API data for display
+/** Chuyển đổi dữ liệu API để hiển thị trên bảng, bao gồm mapping các giá trị enum sang label tiếng Việt */
 const transformData = (items) => {
   return items.map(item => ({
     ...item,
@@ -308,10 +308,12 @@ const visibleColumns = computed(() => tableColumns.value.filter(c => c.visible !
 
 const gridKey = computed(() => tableColumns.value.map(c => c.dataField).join('-'))
 
+/** Xử lý thay đổi cấu hình cột: cập nhật danh sách cột hiển thị */
 const onColumnsChange = (newColumns) => {
   tableColumns.value = newColumns
 }
 
+/** Xử lý khi cấu hình cột được tải: áp dụng cấu hình đã lưu và thiết lập cột ghim */
 const onConfigLoaded = (loadedColumns) => {
   tableColumns.value = loadedColumns
   const pinned = loadedColumns.find(c => c.isPinned)
@@ -323,7 +325,7 @@ const onConfigLoaded = (loadedColumns) => {
   }
 }
 
-// Handle column pin change - save to server
+/** Xử lý ghim cột: lưu cấu hình cột ghim lên server */
 const onColumnPinned = async (dataField) => {
   pinnedColumn.value = dataField
   try {
@@ -333,7 +335,7 @@ const onColumnPinned = async (dataField) => {
   }
 }
 
-// Handle column resize - save to server
+/** Xử lý thay đổi kích thước cột: cập nhật và lưu cấu hình lên server */
 const onColumnResized = async ({ dataField, width }) => {
   const col = tableColumns.value.find(c => c.dataField === dataField)
   if (col) {
@@ -363,7 +365,7 @@ const pageSizeSelectOptions = [
   { value: 100, label: '100' }
 ]
 
-// Fetch data from API
+/** Lấy danh sách danh mục hệ thống từ API với phân trang và bộ lọc */
 const fetchSystemCategories = async () => {
   loading.value = true
   try {
@@ -383,6 +385,7 @@ const fetchSystemCategories = async () => {
   }
 }
 
+/** Xử lý tìm kiếm: reset về trang 1 và tải lại dữ liệu */
 const onSearch = () => {
   currentPage.value = 1
   fetchSystemCategories()
@@ -398,7 +401,7 @@ watch([selectedType], () => {
   fetchSystemCategories()
 })
 
-// Handle action - show confirm dialog first
+/** Xử lý hành động trên dòng: hiển thị dialog xác nhận để thêm vào danh sách sử dụng */
 const onAction = async ({ action, data }) => {
   if (action === 'add') {
     selectedItem.value = data
@@ -406,7 +409,7 @@ const onAction = async ({ action, data }) => {
   }
 }
 
-// Confirm move - check if code exists first
+/** Xác nhận đưa vào danh sách sử dụng: kiểm tra trùng mã trước khi thêm */
 const confirmMove = async () => {
   if (!selectedItem.value) return
 
@@ -432,7 +435,7 @@ const confirmMove = async () => {
   }
 }
 
-// Confirm overwrite - update existing record
+/** Xác nhận ghi đè khi trùng mã: cập nhật thông tin vào bản ghi hiện có */
 const confirmOverwrite = async () => {
   if (!selectedItem.value) return
 
@@ -451,25 +454,29 @@ const confirmOverwrite = async () => {
   }
 }
 
+/** Quay lại trang danh sách thành phần lương */
 const goBack = () => {
   router.push('/payroll/salarycomposition')
 }
 
-// Selection handlers
+/** Xử lý khi thay đổi lựa chọn: cập nhật danh sách các mục đã chọn */
 const onSelectionChanged = (items) => {
   selectedItems.value = items
 }
 
+/** Xóa lựa chọn: bỏ chọn tất cả các mục trong bảng */
 const clearSelection = () => {
   dataGridRef.value?.clearSelection()
   selectedItems.value = []
 }
 
+/** Đưa các mục đã chọn vào danh sách sử dụng: hiển thị dialog xác nhận */
 const addSelectedToList = () => {
   if (selectedItems.value.length === 0) return
   showBulkConfirmDialog.value = true
 }
 
+/** Xác nhận đưa nhiều mục vào danh sách sử dụng */
 const confirmBulkMove = async () => {
   if (selectedItems.value.length === 0) return
 

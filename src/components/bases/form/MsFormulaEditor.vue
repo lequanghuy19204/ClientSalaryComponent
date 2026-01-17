@@ -85,25 +85,29 @@ const internalValue = computed({
   set: (val) => emit('update:modelValue', val)
 })
 
+/** Tô màu cú pháp cho code */
 const highlighter = (code) => {
   return Prism.highlight(code, Prism.languages.formula, 'formula')
 }
 
+/** Xử lý sự kiện nhập liệu */
 const onInput = () => {
   // Value is already synced via v-model
 }
 
+/** Xử lý khi focus vào editor */
 const onFocus = () => {
   isFocused.value = true
   emit('focus')
 }
 
+/** Xử lý khi blur khỏi editor */
 const onBlur = () => {
   isFocused.value = false
   emit('blur')
 }
 
-// Expose focus method
+/** Focus vào editor từ bên ngoài */
 const focus = () => {
   editorRef.value?.$el?.querySelector('textarea')?.focus()
 }

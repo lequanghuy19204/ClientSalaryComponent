@@ -79,6 +79,7 @@ const sizeClass = computed(() => {
   return sizes[props.size] || 'ms-btn-md'
 })
 
+/** Xử lý sự kiện click button */
 const onClick = (event) => {
   if (!props.disabled && !props.loading) {
     emit('click', event)

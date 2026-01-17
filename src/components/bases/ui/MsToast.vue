@@ -22,6 +22,7 @@ import { useToast } from '@/composables'
 
 const { toasts } = useToast()
 
+/** Lấy class icon theo loại thông báo */
 const getIconClass = (type) => {
   const icons = {
     success: 'icon-mi-alert-success',

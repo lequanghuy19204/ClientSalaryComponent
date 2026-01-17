@@ -96,14 +96,17 @@ const sizeClass = computed(() => {
   return sizes[props.size] || 'ms-multiselect-large'
 })
 
+/** Xử lý khi thay đổi giá trị */
 const onChange = (event) => {
   emit('change', event)
 }
 
+/** Xử lý khi blur */
 const onBlur = (event) => {
   emit('blur', event)
 }
 
+/** Xử lý khi focus */
 const onFocus = (event) => {
   emit('focus', event)
 }

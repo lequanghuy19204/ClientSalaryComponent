@@ -48,6 +48,7 @@ const emit = defineEmits(['update:modelValue', 'change'])
 
 const isChecked = computed(() => props.modelValue === props.value)
 
+/** Chọn radio button */
 const select = () => {
   if (props.disabled) return
   emit('update:modelValue', props.value)
