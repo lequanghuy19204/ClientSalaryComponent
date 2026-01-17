@@ -54,7 +54,12 @@
                 :selectable="true"
                 :show-actions="false"
                 @selection-changed="onSelectionChanged"
-              />
+              >
+                <!-- Value (formula) column template -->
+                <template #valueTemplate="{ data }">
+                  <MsFormulaCell :value="data.data.displayValue" />
+                </template>
+              </BaseDataGrid>
             </div>
           </div>
 
@@ -106,6 +111,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import BaseDataGrid from '@/components/bases/data/BaseDataGrid.vue'
+import MsFormulaCell from '@/components/bases/data/MsFormulaCell.vue'
 import MsButton from '@/components/bases/ui/MsButton.vue'
 import MsInput from '@/components/bases/form/MsInput.vue'
 import MsSelect from '@/components/bases/form/MsSelect.vue'
@@ -196,12 +202,13 @@ const transformData = (items) => {
     displayType: typeLabels[item.salaryCompositionSystemType] || item.salaryCompositionSystemType,
     displayNature: natureLabels[item.salaryCompositionSystemNature] || item.salaryCompositionSystemNature,
     displayTaxable: item.salaryCompositionSystemTaxOption
-      ? taxOptionLabels[item.salaryCompositionSystemTaxOption] || ''
-      : '',
-    displayTaxDeduction: item.salaryCompositionSystemTaxDeduction ? 'Có' : 'Không',
+      ? taxOptionLabels[item.salaryCompositionSystemTaxOption] || '-'
+      : '-',
+    displayTaxDeduction: item.salaryCompositionSystemTaxDeduction ? 'Có' : '-',
     displayValueType: valueTypeLabels[item.salaryCompositionSystemValueType] || item.salaryCompositionSystemValueType,
     displayShowOnPayslip: showOnPayslipLabels[item.salaryCompositionSystemShowOnPayslip] || '',
-    displayQuota: item.salaryCompositionSystemQuota || ''
+    displayQuota: item.salaryCompositionSystemQuota || '',
+    displayValue: item.salaryCompositionSystemValueFormula || '-'
   }))
 }
 
@@ -215,7 +222,7 @@ const tableColumns = [
   { dataField: 'displayTaxDeduction', caption: 'Giảm trừ khi tính thuế', width: 180, minWidth: 150 },
   { dataField: 'displayQuota', caption: 'Định mức', width: 120, minWidth: 100 },
   { dataField: 'displayValueType', caption: 'Kiểu giá trị', width: 120, minWidth: 100 },
-  { dataField: 'salaryCompositionSystemValueFormula', caption: 'Giá trị', width: 150, minWidth: 100 },
+  { dataField: 'displayValue', caption: 'Giá trị', width: 150, minWidth: 100, cellTemplate: 'valueTemplate' },
   { dataField: 'salaryCompositionSystemDescription', caption: 'Mô tả', width: 200, minWidth: 150 },
   { dataField: 'displayShowOnPayslip', caption: 'Hiển thị trên phiếu lương', width: 180, minWidth: 150 }
 ]

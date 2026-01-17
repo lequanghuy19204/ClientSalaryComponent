@@ -180,7 +180,7 @@ defineExpose({ focus })
 }
 
 .ms-formula-editor :deep(.token.variable) {
-  color: #9c27b0;
+  color: #0000ff;
 }
 
 .ms-formula-editor :deep(.token.number) {
@@ -192,11 +192,11 @@ defineExpose({ focus })
 }
 
 .ms-formula-editor :deep(.token.operator) {
-  color: #d32f2f;
+  color: #ff0000;
 }
 
 .ms-formula-editor :deep(.token.punctuation) {
-  color: #616161;
+  color: #ff0000;
 }
 
 .ms-formula-editor :deep(.token.comment) {

@@ -169,6 +169,10 @@
             </span>
           </div>
         </template>
+        <!-- Value (formula) column template -->
+        <template #valueTemplate="{ data }">
+          <MsFormulaCell :value="data.data.value" />
+        </template>
       </BaseDataGrid>
     </div>
     </template>
@@ -223,6 +227,7 @@ import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseDataGrid from '@/components/bases/data/BaseDataGrid.vue'
 import MsTree from '@/components/bases/data/MsTree.vue'
+import MsFormulaCell from '@/components/bases/data/MsFormulaCell.vue'
 import MsButton from '@/components/bases/ui/MsButton.vue'
 import MsInput from '@/components/bases/form/MsInput.vue'
 import MsSelect from '@/components/bases/form/MsSelect.vue'
@@ -348,7 +353,7 @@ const defaultColumns = [
   { dataField: 'taxDeduction', caption: 'Giảm trừ khi tính thuế', width: 180, minWidth: 150, visible: true },
   { dataField: 'salaryCompositionQuota', caption: 'Định mức', width: 120, minWidth: 100, visible: true },
   { dataField: 'salaryCompositionValueType', caption: 'Kiểu giá trị', width: 120, minWidth: 100, visible: true },
-  { dataField: 'value', caption: 'Giá trị', width: 120, minWidth: 100, visible: true },
+  { dataField: 'value', caption: 'Giá trị', width: 120, minWidth: 100, cellTemplate: 'valueTemplate', visible: true },
   { dataField: 'salaryCompositionDescription', caption: 'Mô tả', width: 200, minWidth: 150, visible: true },
   { dataField: 'showOnPayslip', caption: 'Hiển thị trên phiếu lương', width: 200, minWidth: 150, visible: true },
   { dataField: 'salaryCompositionSource', caption: 'Nguồn tạo', width: 120, minWidth: 100, visible: true },
@@ -572,11 +577,11 @@ const mapDataForDisplay = (data) => {
     unit: getUnitDisplayNames(item.organizationIds),
     salaryCompositionType: typeMap[item.salaryCompositionType] || item.salaryCompositionType,
     salaryCompositionNature: propertyMap[item.salaryCompositionNature] || item.salaryCompositionNature,
-    taxable: taxOptionMap[item.salaryCompositionTaxOption] || item.salaryCompositionTaxOption || '',
-    taxDeduction: item.salaryCompositionTaxDeduction ? 'Có' : 'Không',
+    taxable: item.salaryCompositionTaxOption ? (taxOptionMap[item.salaryCompositionTaxOption] || item.salaryCompositionTaxOption) : '-',
+    taxDeduction: item.salaryCompositionTaxDeduction ? 'Có' : '-',
     salaryCompositionQuota: item.salaryCompositionQuota || '',
     salaryCompositionValueType: valueTypeMap[item.salaryCompositionValueType] || item.salaryCompositionValueType || '',
-    value: item.salaryCompositionValueFormula || '',
+    value: item.salaryCompositionValueFormula || '-',
     salaryCompositionDescription: item.salaryCompositionDescription || '',
     showOnPayslip: showOnPayslipMap[item.salaryCompositionShowOnPayslip] || item.salaryCompositionShowOnPayslip || '',
     salaryCompositionSource: sourceMap[item.salaryCompositionSource] || item.salaryCompositionSource || '',

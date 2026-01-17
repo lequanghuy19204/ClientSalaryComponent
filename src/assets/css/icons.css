@@ -434,3 +434,23 @@
   height: 20px;
   background-color: #6e737a !important;
 }
+
+.icon-mi-lock {
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -20px -20px;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -20px -20px;
+  width: 20px;
+  height: 20px;
+  background-color: #6e737a !important;
+}
+
+.icon-mi-circle-close {
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -240px -40px;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -240px -40px;
+  width: 20px;
+  height: 20px;
+  background-color: #6e737a !important;
+}

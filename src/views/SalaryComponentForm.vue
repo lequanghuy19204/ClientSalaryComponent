@@ -49,10 +49,10 @@
           <label class="form-label-left required flex-shrink-0"><b>Tên thành phần</b></label>
           <div class="form-input-right">
             <MsInput
+              ref="nameInputRef"
               v-model="formData.salaryCompositionName"
               class="w-full"
               :maxlength="255"
-              :autofocus="true"
               :has-error="!!formErrors.salaryCompositionName"
               :error-message="formErrors.salaryCompositionName"
             />
@@ -255,20 +255,42 @@
                 v-if="formData.salaryCompositionNature === 'income' && formData.salaryCompositionTaxOption === 'tax_exempt_partial'"
               >
                 <div class="tax-partial-label">Trong đó:</div>
+                <!-- Phần chịu thuế -->
                 <div class="tax-partial-row d-flex align-items-start">
                   <label class="tax-partial-field-label flex-shrink-0"><b>Phần chịu thuế</b></label>
                   <div class="tax-partial-input flex-grow-1">
+                    <!-- Hiển thị công thức khi phần miễn thuế đã có giá trị -->
+                    <div
+                      v-if="formData.salaryCompositionTaxExemptPart && !formData.salaryCompositionTaxablePart"
+                      class="formula-display d-flex align-items-center"
+                    >
+                      <span class="formula-text">= Tổng giá trị - Phần miễn thuế</span>
+                      <span class="icon icon-mi-circle-close formula-close" @click="clearTaxPartialFields"></span>
+                    </div>
+                    <!-- Hiển thị input khi chưa có giá trị phần miễn thuế hoặc đang có giá trị -->
                     <MsFormulaEditor
+                      v-else
                       v-model="formData.salaryCompositionTaxablePart"
                       placeholder="Chỉ cần nhập giá trị cho 1 trong 2 phần chịu thuế và miễn thuế"
                       class="w-full"
                     />
                   </div>
                 </div>
+                <!-- Phần miễn thuế -->
                 <div class="tax-partial-row d-flex align-items-start">
                   <label class="tax-partial-field-label flex-shrink-0"><b>Phần miễn thuế</b></label>
                   <div class="tax-partial-input flex-grow-1">
+                    <!-- Hiển thị công thức khi phần chịu thuế đã có giá trị -->
+                    <div
+                      v-if="formData.salaryCompositionTaxablePart && !formData.salaryCompositionTaxExemptPart"
+                      class="formula-display d-flex align-items-center"
+                    >
+                      <span class="formula-text">= Tổng giá trị - Phần chịu thuế</span>
+                      <span class="icon icon-mi-circle-close formula-close" @click="clearTaxPartialFields"></span>
+                    </div>
+                    <!-- Hiển thị input khi chưa có giá trị phần chịu thuế hoặc đang có giá trị -->
                     <MsFormulaEditor
+                      v-else
                       v-model="formData.salaryCompositionTaxExemptPart"
                       placeholder="Chỉ cần nhập giá trị cho 1 trong 2 phần chịu thuế và miễn thuế"
                       class="w-full"
@@ -340,7 +362,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import MsInput from '@/components/bases/form/MsInput.vue'
 import MsTextarea from '@/components/bases/form/MsTextarea.vue'
 import MsSelect from '@/components/bases/form/MsSelect.vue'
@@ -379,6 +401,7 @@ const isCodeManuallyEdited = ref(false)
 const showMoreMenu = ref(false)
 const formBodyRef = ref(null)
 const showUnsavedDialog = ref(false)
+const nameInputRef = ref(null)
 const originalFormData = ref(null)
 
 const focusNextInput = (e) => {
@@ -437,6 +460,11 @@ const handleUnsavedSave = async () => {
   await handleSave()
 }
 
+const clearTaxPartialFields = () => {
+  formData.salaryCompositionTaxablePart = ''
+  formData.salaryCompositionTaxExemptPart = ''
+}
+
 const handleDuplicate = () => {
   showMoreMenu.value = false
   emit('back', { action: 'duplicate', id: props.editId })
@@ -459,6 +487,10 @@ const handleDelete = async () => {
 
 onMounted(() => {
   document.addEventListener('click', closeMoreMenu)
+  // Focus vào input "Tên thành phần" khi vào form
+  nextTick(() => {
+    nameInputRef.value?.$el?.querySelector('input')?.focus()
+  })
 })
 
 onUnmounted(() => {
@@ -558,6 +590,26 @@ watch(
   (newName) => {
     if (!isEdit.value && !isCodeManuallyEdited.value) {
       formData.salaryCompositionCode = generateCodeFromName(newName)
+    }
+  },
+)
+
+// Reset tax option và tax deduction khi thay đổi tính chất
+watch(
+  () => formData.salaryCompositionNature,
+  (newNature) => {
+    if (newNature === 'other') {
+      // Khi chọn "Khác", reset các giá trị radio về null
+      formData.salaryCompositionTaxOption = null
+      formData.salaryCompositionTaxDeduction = false
+    } else if (newNature === 'income') {
+      // Khi chọn "Thu nhập", set default cho tax option
+      if (!formData.salaryCompositionTaxOption) {
+        formData.salaryCompositionTaxOption = 'taxable'
+      }
+    } else if (newNature === 'deduction') {
+      // Khi chọn "Khấu trừ", reset tax option
+      formData.salaryCompositionTaxOption = null
     }
   },
 )
@@ -981,5 +1033,27 @@ const handleSaveAndAdd = async () => {
 .tax-partial-input {
   margin-left: 12px;
   max-width: 674px;
+}
+
+/* Formula Display (for calculated tax parts) */
+.formula-display {
+  height: 36px;
+  max-width: 540px;
+  padding: 0 12px;
+  border-bottom: 1px solid #e0e0e0;
+  justify-content: space-between;
+}
+
+.formula-text {
+  font-size: 14px;
+  color: #212121;
+}
+
+.formula-close {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: 8px;
 }
 </style>
