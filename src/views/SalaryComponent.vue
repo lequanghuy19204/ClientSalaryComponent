@@ -190,6 +190,15 @@
     @confirm="confirmDelete"
   />
 
+  <!-- Cannot Delete Default Item Dialog -->
+  <MsConfirmDialog
+    v-model="showCannotDeleteDialog"
+    title="Thông báo"
+    message="Đây là thành phần lương mặc định của hệ thống nên không thể xóa. Vui lòng kiểm tra lại."
+    cancel-text="Đóng"
+    :show-confirm="false"
+  />
+
   <!-- Bulk Delete Confirmation Dialog -->
   <MsConfirmDialog
     v-model="showBulkDeleteDialog"
@@ -261,6 +270,9 @@ const showSystemCategoryPopup = ref(false)
 const showDeleteDialog = ref(false)
 const deleteTarget = ref(null)
 const isDeleting = ref(false)
+
+// Dialog thông báo không thể xóa thành phần mặc định (xóa đơn lẻ)
+const showCannotDeleteDialog = ref(false)
 
 // Bulk delete confirmation dialog state
 const showBulkDeleteDialog = ref(false)
@@ -744,6 +756,11 @@ const onAction = async ({ action, data }) => {
     editId.value = data.salaryCompositionId
     showForm.value = true
   } else if (action === 'delete') {
+    // Kiểm tra nếu là thành phần mặc định thì hiển thị dialog thông báo
+    if (data.salaryCompositionSource === 'Mặc định') {
+      showCannotDeleteDialog.value = true
+      return
+    }
     deleteTarget.value = data
     showDeleteDialog.value = true
   } else if (action === 'stop') {
