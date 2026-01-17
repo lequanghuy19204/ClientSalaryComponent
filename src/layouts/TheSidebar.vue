@@ -9,7 +9,7 @@
           class="sidebar-item"
           :class="{ active: item.id === activeId }"
         >
-          <a href="#" class="sidebar-link d-flex align-items-center gap-2 text-decoration-none" @click.prevent="handleClick(item.id)">
+          <a href="#" class="sidebar-link d-flex align-items-center gap-2 text-decoration-none" @click.prevent="handleClick(item)">
             <span class="sidebar-icon d-inline-block flex-shrink-0" :class="item.icon"></span>
             <span class="sidebar-text flex-grow-1 text-truncate">{{ item.text }}</span>
             <span v-if="item.hasDropdown" class="sidebar-dropdown icon-sidebar-dropdown"></span>
@@ -29,14 +29,34 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
 const STORAGE_KEY = 'sidebar-collapsed'
 
+const router = useRouter()
+const route = useRoute()
+
 const emit = defineEmits(['update:collapsed'])
 
-const activeId = ref('salary-composition')
 const isCollapsed = ref(localStorage.getItem(STORAGE_KEY) === 'true')
+
+const menuItems = [
+  { id: 'dashboard', icon: 'icon-sidebar-dashboard', text: 'Tổng quan', route: '/payroll/dashboard' },
+  { id: 'salary-composition', icon: 'icon-sidebar-salary-composition', text: 'Thành phần lương', route: '/payroll/salarycomposition' },
+  { id: 'salary-template', icon: 'icon-sidebar-salary-template', text: 'Mẫu bảng lương', route: '/payroll/salary-template' },
+  { id: 'salary-data', icon: 'icon-sidebar-salary-data', text: 'Dữ liệu tính lương', route: '/payroll/salary-data', hasDropdown: true },
+  { id: 'salary-table', icon: 'icon-sidebar-salary-table', text: 'Tính lương', route: '/payroll/salary-table', hasDropdown: true },
+  { id: 'payment', icon: 'icon-sidebar-payment', text: 'Chi trả', route: '/payroll/payment', hasDropdown: true },
+  { id: 'report', icon: 'icon-sidebar-report', text: 'Báo cáo', route: '/payroll/report', hasDropdown: true },
+  { id: 'setting', icon: 'icon-sidebar-setting', text: 'Thiết lập', route: '/payroll/setting', hasDropdown: true }
+]
+
+const activeId = computed(() => {
+  const currentPath = route.path
+  const item = menuItems.find(item => currentPath.startsWith(item.route))
+  return item ? item.id : 'salary-composition'
+})
 
 onMounted(() => {
   emit('update:collapsed', isCollapsed.value)
@@ -47,19 +67,8 @@ watch(isCollapsed, (newValue) => {
   emit('update:collapsed', newValue)
 })
 
-const menuItems = [
-  { id: 'dashboard', icon: 'icon-sidebar-dashboard', text: 'Tổng quan' },
-  { id: 'salary-composition', icon: 'icon-sidebar-salary-composition', text: 'Thành phần lương' },
-  { id: 'salary-template', icon: 'icon-sidebar-salary-template', text: 'Mẫu bảng lương' },
-  { id: 'salary-data', icon: 'icon-sidebar-salary-data', text: 'Dữ liệu tính lương', hasDropdown: true },
-  { id: 'salary-table', icon: 'icon-sidebar-salary-table', text: 'Tính lương', hasDropdown: true },
-  { id: 'payment', icon: 'icon-sidebar-payment', text: 'Chi trả', hasDropdown: true },
-  { id: 'report', icon: 'icon-sidebar-report', text: 'Báo cáo', hasDropdown: true },
-  { id: 'setting', icon: 'icon-sidebar-setting', text: 'Thiết lập', hasDropdown: true }
-]
-
-const handleClick = (id) => {
-  activeId.value = id
+const handleClick = (item) => {
+  router.push(item.route)
 }
 
 const toggleSidebar = () => {
