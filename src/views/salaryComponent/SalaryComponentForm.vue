@@ -25,6 +25,7 @@
             variant="outline"
             class="btn-more"
             title="Chức năng khác"
+            :icon-hover="true"
             @click="toggleMoreMenu"
           />
           <ul v-show="showMoreMenu" class="more-dropdown-menu position-absolute bg-white">
