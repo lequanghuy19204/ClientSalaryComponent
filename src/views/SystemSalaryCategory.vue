@@ -49,6 +49,7 @@
               v-model="searchText"
               placeholder="Tìm kiếm"
               class="search-input-wrapper"
+              @keyup.enter="onSearch"
             />
           </div>
 
@@ -70,6 +71,7 @@
               variant="text"
               class="filter-btn"
               title="Bộ lọc"
+              icon-hover
             />
 
             <!-- Column Config Button -->
@@ -374,12 +376,17 @@ const fetchSystemCategories = async () => {
   }
 }
 
+const onSearch = () => {
+  currentPage.value = 1
+  fetchSystemCategories()
+}
+
 // Watch for pagination and filter changes
 watch([currentPage, pageSize], () => {
   fetchSystemCategories()
 })
 
-watch([searchText, selectedType], () => {
+watch([selectedType], () => {
   currentPage.value = 1
   fetchSystemCategories()
 })

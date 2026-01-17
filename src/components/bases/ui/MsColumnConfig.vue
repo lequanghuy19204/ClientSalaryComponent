@@ -5,6 +5,7 @@
       variant="text"
       class="config-trigger"
       title="Thiết lập"
+      icon-hover
       @click="togglePopup"
     />
 

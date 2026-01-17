@@ -1,6 +1,6 @@
 <template>
   <button
-    :class="['ms-btn', variantClass, sizeClass, { 'ms-btn-disabled': disabled, 'ms-btn-loading': loading }]"
+    :class="['ms-btn', variantClass, sizeClass, { 'ms-btn-disabled': disabled, 'ms-btn-loading': loading, 'ms-btn-icon-hover': iconHover }]"
     :disabled="disabled || loading"
     :type="type"
     @click="onClick"
@@ -50,6 +50,10 @@ const props = defineProps({
   type: {
     type: String,
     default: 'button'
+  },
+  iconHover: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -160,6 +164,14 @@ const onClick = (event) => {
   background: #fff;
   border-color: #34b057;
   color: #34b057;
+}
+
+.ms-btn-outline:hover:not(:disabled) .icon {
+  background-color: #34b057;
+}
+
+.ms-btn-icon-hover:hover:not(:disabled) .icon {
+  background-color: #34b057;
 }
 
 .ms-btn-outline:active:not(:disabled) {

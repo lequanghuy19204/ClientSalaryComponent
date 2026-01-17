@@ -24,7 +24,7 @@
             @click="goToSystemCategory"
           />
           <!-- Thêm mới button -->
-          <div class="btn-group d-flex">
+          <div class="btn-group d-flex" v-click-outside="closeDropdown">
             <MsButton
               label="Thêm mới"
               icon="icon-mi-plus-white"
@@ -35,7 +35,14 @@
               icon="icon-down-white"
               variant="primary"
               class="btn-dropdown"
+              @click="toggleDropdown"
             />
+            <!-- Dropdown menu -->
+            <div v-if="showDropdown" class="btn-group-dropdown">
+              <div class="dropdown-item" @click="goToSystemCategory">
+                Chọn từ danh mục của hệ thống
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -53,6 +60,7 @@
               v-model="searchText"
               placeholder="Tìm kiếm"
               class="search-input-wrapper"
+              @keyup.enter="onSearch"
             />
           </div>
 
@@ -84,6 +92,7 @@
             variant="text"
             class="filter-btn"
             title="Bộ lọc"
+            icon-hover
           />
 
           <!-- Column Config Button -->
@@ -233,6 +242,7 @@ const searchText = ref('')
 const selectedRows = ref([])
 const loading = ref(false)
 const dataGridRef = ref(null)
+const showDropdown = ref(false)
 
 // Delete confirmation dialog state
 const showDeleteDialog = ref(false)
@@ -590,13 +600,18 @@ const fetchSalaryComponents = async () => {
   }
 }
 
+const onSearch = () => {
+  currentPage.value = 1
+  fetchSalaryComponents()
+}
+
 // Watch for filter changes to refetch data
 
 watch([currentPage, pageSize], () => {
   fetchSalaryComponents()
 })
 
-watch([searchText, selectedStatus, selectedUnits], () => {
+watch([selectedStatus, selectedUnits], () => {
   currentPage.value = 1
   fetchSalaryComponents()
 }, { deep: true })
@@ -772,7 +787,16 @@ const onFormDeleted = async () => {
 }
 
 const goToSystemCategory = () => {
+  showDropdown.value = false
   router.push('/payroll/salarycomposition/system-category')
+}
+
+const toggleDropdown = () => {
+  showDropdown.value = !showDropdown.value
+}
+
+const closeDropdown = () => {
+  showDropdown.value = false
 }
 </script>
 
@@ -802,6 +826,10 @@ const goToSystemCategory = () => {
 }
 
 /* Button Group Styling */
+.btn-group {
+  position: relative;
+}
+
 .btn-group :deep(.ms-btn:first-child) {
   border-radius: 4px 0 0 4px;
 }
@@ -814,6 +842,32 @@ const goToSystemCategory = () => {
 .btn-group :deep(.btn-dropdown) {
   padding: 0 8px;
   min-width: 36px;
+}
+
+/* Dropdown Menu */
+.btn-group-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+  padding: 8px 6px;
+  min-width: 200px;
+  z-index: 100;
+}
+
+.btn-group-dropdown .dropdown-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #212121;
+  white-space: nowrap;
+}
+
+.btn-group-dropdown .dropdown-item:hover {
+  background: #eafbf2;
 }
 
 /* Filter Section */

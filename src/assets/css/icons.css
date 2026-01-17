@@ -151,10 +151,13 @@
 
 /* Container */
 .icon-mi-rule {
-  background: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -260px -100px;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
     no-repeat -260px -100px;
   width: 20px;
   height: 20px;
+  background-color: #6e737a;
 }
 
 .icon-mi-plus-white {
@@ -204,17 +207,23 @@
 }
 
 .icon-mi-filter {
-  background: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -20px 0;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
     no-repeat -20px 0;
   width: 20px;
   height: 20px;
+  background-color: #6e737a;
 }
 
 .icon-mi-setting {
-  background: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+  -webkit-mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
+    no-repeat -48px -120px;
+  mask: url('https://testcdnamisapp.misacdn.net/apps/payroll/static/img/Icon.0b197b4.svg?v=')
     no-repeat -48px -120px;
   width: 24px;
   height: 24px;
+  background-color: #6e737a;
 }
 
 .icon-mi-chevron-left {

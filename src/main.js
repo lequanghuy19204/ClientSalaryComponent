@@ -12,6 +12,9 @@ import Aura from '@primevue/themes/aura'
 import 'primeicons/primeicons.css'
 import Tooltip from 'primevue/tooltip'
 
+// Directives
+import { clickOutside } from './directives/click-outside'
+
 const app = createApp(App)
 
 app.use(router)
@@ -24,5 +27,6 @@ app.use(PrimeVue, {
   }
 })
 app.directive('tooltip', Tooltip)
+app.directive('click-outside', clickOutside)
 
 app.mount('#app')
