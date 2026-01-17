@@ -65,7 +65,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import DxDropDownBox from 'devextreme-vue/drop-down-box'
 import DxTreeView from 'devextreme-vue/tree-view'
 import MsInput from '@/components/bases/form/MsInput.vue'
@@ -212,6 +212,93 @@ const selectedNames = computed(() => {
   return result
 })
 
+// Map each display item to its ID and all descendant IDs
+const displayItemsWithIds = computed(() => {
+  const idKey = props.keyExpr
+  const nameKey = props.displayExpr
+  const ids = new Set(
+    Array.isArray(selectedValue.value)
+      ? selectedValue.value.map((x) => String(x))
+      : []
+  )
+  if (!flatList.value?.length || ids.size === 0) return []
+
+  const byId = new Map()
+  const childrenByParent = new Map()
+
+  for (const raw of flatList.value) {
+    const idStr = String(raw[idKey])
+    const parentIdStr = raw.parentId == null ? null : String(raw.parentId)
+    const nameStr = String(raw[nameKey] ?? '')
+    byId.set(idStr, { id: idStr, name: nameStr, parentId: parentIdStr })
+    if (!childrenByParent.has(parentIdStr)) childrenByParent.set(parentIdStr, [])
+    childrenByParent.get(parentIdStr).push(idStr)
+  }
+
+  // Get all descendants of a node
+  function getAllDescendants(nodeId) {
+    const descendants = []
+    const children = childrenByParent.get(nodeId) || []
+    for (const childId of children) {
+      if (ids.has(childId)) descendants.push(childId)
+      descendants.push(...getAllDescendants(childId))
+    }
+    return descendants
+  }
+
+  const parentsToDisplay = new Set()
+  childrenByParent.forEach((childIds, parentId) => {
+    if (parentId == null) return
+    if (!childIds || childIds.length === 0) return
+    const parentSelected = ids.has(parentId)
+    const allChildrenSelected = childIds.every((cid) => ids.has(cid))
+    if (parentSelected || allChildrenSelected) parentsToDisplay.add(parentId)
+  })
+
+  function hasAncestorInSet(nodeId, set) {
+    let cur = byId.get(nodeId)
+    while (cur && cur.parentId != null) {
+      if (set.has(cur.parentId)) return true
+      cur = byId.get(cur.parentId)
+    }
+    return false
+  }
+
+  const effectiveParents = new Set()
+  parentsToDisplay.forEach((pid) => {
+    if (!hasAncestorInSet(pid, parentsToDisplay)) effectiveParents.add(pid)
+  })
+
+  function isCoveredByDisplayedParent(nodeId) {
+    let cur = byId.get(nodeId)
+    while (cur && cur.parentId != null) {
+      if (effectiveParents.has(cur.parentId)) return true
+      cur = byId.get(cur.parentId)
+    }
+    return false
+  }
+
+  const displayIds = new Set()
+  effectiveParents.forEach((pid) => displayIds.add(pid))
+  ids.forEach((sid) => {
+    if (!isCoveredByDisplayedParent(sid) && !displayIds.has(sid)) displayIds.add(sid)
+  })
+
+  const result = []
+  for (const raw of flatList.value) {
+    const idStr = String(raw[idKey])
+    if (displayIds.has(idStr)) {
+      // Collect this ID and all its selected descendants
+      const idsToRemove = [idStr, ...getAllDescendants(idStr)]
+      result.push({
+        name: String(raw[nameKey] ?? ''),
+        idsToRemove
+      })
+    }
+  }
+  return result
+})
+
 const visibleFilterItems = computed(() => {
   return selectedNames.value.slice(0, props.maxSelectedLabels)
 })
@@ -224,6 +311,7 @@ const hiddenFilterCount = computed(() => {
 
 // Watch modelValue from parent
 watch(() => props.modelValue, (newVal) => {
+  if (isSyncing.value) return
   selectedValue.value = [...newVal]
 }, { deep: true })
 
@@ -319,24 +407,54 @@ function toggleChildrenSelection(treeView, node, selected) {
 }
 
 function removeFilterItem(index) {
-  const idToRemove = selectedValue.value[index]
-  const newValue = [...selectedValue.value]
-  newValue.splice(index, 1)
+  if (isSyncing.value) return
+  isSyncing.value = true
+  
+  // Get the display item at this index - it contains all IDs to remove (parent + descendants)
+  const displayItem = displayItemsWithIds.value[index]
+  if (!displayItem) {
+    isSyncing.value = false
+    return
+  }
+  
+  const idsToRemove = new Set(displayItem.idsToRemove)
+  
+  // Filter out all IDs that need to be removed
+  const newValue = selectedValue.value.filter(id => !idsToRemove.has(String(id)))
   selectedValue.value = newValue
   emit('update:modelValue', newValue)
   emit('change', { value: newValue })
 
+  // Unselect all removed items in the tree
   const treeView = treeViewRef.value?.instance
   if (treeView) {
-    treeView.unselectItem(idToRemove)
+    idsToRemove.forEach(id => {
+      treeView.unselectItem(id)
+    })
   }
+  
+  // Delay reset isSyncing to allow async events to complete
+  nextTick(() => {
+    setTimeout(() => {
+      isSyncing.value = false
+    }, 50)
+  })
 }
 
 function onValueChanged(e) {
+  if (isSyncing.value) return
   if (e.value === null || (Array.isArray(e.value) && e.value.length === 0)) {
+    isSyncing.value = true
     selectedValue.value = []
     emit('update:modelValue', [])
     emit('change', { value: [] })
+    
+    // Delay reset isSyncing to allow async events to complete
+    nextTick(() => {
+      setTimeout(() => {
+        isSyncing.value = false
+      }, 50)
+    })
   }
 }
 </script>

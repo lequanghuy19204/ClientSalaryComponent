@@ -29,7 +29,7 @@
       <DxColumn
         v-if="selectable"
         type="selection"
-        :width="40"
+        :width="55"
         :fixed="true"
         fixed-position="left"
         css-class="cell-column checkbox-column"
@@ -276,7 +276,7 @@ watch(() => props.columns, (cols) => {
 const onPinColumn = (dataField) => {
   const clickedIndex = props.columns.findIndex(col => col.dataField === dataField)
   if (clickedIndex === -1) return
-  
+
   // If clicking on currently pinned column, reset to first column
   if (clickedIndex === pinnedColumnIndex.value) {
     pinnedColumnIndex.value = 0

@@ -28,7 +28,13 @@ class SalaryCompositionApi extends BaseApi {
     if (searchText) params.searchText = searchText
     if (status !== null) params.status = status
     if (organizationIds?.length) params.organizationIds = organizationIds
-    const response = await httpClient.get(`${this.endpoint}/paged`, { params })
+    
+    const response = await httpClient.get(`${this.endpoint}/paged`, { 
+      params,
+      paramsSerializer: {
+        indexes: null // This makes axios serialize arrays as: organizationIds=a&organizationIds=b
+      }
+    })
     return response.data
   }
 }
