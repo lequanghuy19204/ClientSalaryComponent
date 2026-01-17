@@ -29,14 +29,21 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
+
+const STORAGE_KEY = 'sidebar-collapsed'
 
 const emit = defineEmits(['update:collapsed'])
 
 const activeId = ref('salary-composition')
-const isCollapsed = ref(false)
+const isCollapsed = ref(localStorage.getItem(STORAGE_KEY) === 'true')
+
+onMounted(() => {
+  emit('update:collapsed', isCollapsed.value)
+})
 
 watch(isCollapsed, (newValue) => {
+  localStorage.setItem(STORAGE_KEY, newValue.toString())
   emit('update:collapsed', newValue)
 })
 
