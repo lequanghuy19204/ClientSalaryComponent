@@ -39,7 +39,7 @@
             />
             <!-- Dropdown menu -->
             <div v-if="showDropdown" class="btn-group-dropdown">
-              <div class="dropdown-item" @click="goToSystemCategory">
+              <div class="dropdown-item" @click="openSystemCategoryPopup">
                 Chọn từ danh mục của hệ thống
               </div>
             </div>
@@ -210,6 +210,12 @@
     :loading="isChangingStatus"
     @confirm="confirmStatusChange"
   />
+
+  <!-- System Salary Category Popup -->
+  <SystemSalaryCategoryPopup
+    v-model="showSystemCategoryPopup"
+    @added="onSystemCategoryAdded"
+  />
 </template>
 
 <script setup>
@@ -223,6 +229,7 @@ import MsSelect from '@/components/bases/form/MsSelect.vue'
 import MsConfirmDialog from '@/components/bases/ui/MsConfirmDialog.vue'
 import MsColumnConfig from '@/components/bases/ui/MsColumnConfig.vue'
 import SalaryComponentForm from '@/views/SalaryComponentForm.vue'
+import SystemSalaryCategoryPopup from '@/views/SystemSalaryCategoryPopup.vue'
 import salaryCompositionApi from '@/api/salary-composition.api'
 import { useOrganization, useToast, useGridConfig } from '@/composables'
 
@@ -243,6 +250,7 @@ const selectedRows = ref([])
 const loading = ref(false)
 const dataGridRef = ref(null)
 const showDropdown = ref(false)
+const showSystemCategoryPopup = ref(false)
 
 // Delete confirmation dialog state
 const showDeleteDialog = ref(false)
@@ -787,8 +795,16 @@ const onFormDeleted = async () => {
 }
 
 const goToSystemCategory = () => {
-  showDropdown.value = false
   router.push('/payroll/salarycomposition/system-category')
+}
+
+const openSystemCategoryPopup = () => {
+  showDropdown.value = false
+  showSystemCategoryPopup.value = true
+}
+
+const onSystemCategoryAdded = async () => {
+  await fetchSalaryComponents()
 }
 
 const toggleDropdown = () => {
