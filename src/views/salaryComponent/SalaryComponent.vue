@@ -436,7 +436,7 @@ const onColumnResized = async ({ dataField, width }) => {
 
 // Pagination state
 const currentPage = ref(1)
-const pageSize = ref(15)
+const pageSize = ref(25)
 const totalRecords = ref(179)
 
 const pageSizeSelectOptions = [

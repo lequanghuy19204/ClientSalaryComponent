@@ -355,7 +355,7 @@ const actionButtons = [
 
 // Pagination
 const currentPage = ref(1)
-const pageSize = ref(15)
+const pageSize = ref(25)
 const totalRecords = ref(0)
 
 const pageSizeSelectOptions = [
