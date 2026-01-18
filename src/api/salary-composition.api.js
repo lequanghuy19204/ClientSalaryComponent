@@ -53,13 +53,50 @@ class SalaryCompositionApi extends BaseApi {
    * @param {string} options.searchText - Từ khóa tìm kiếm
    * @param {number} options.status - Lọc theo trạng thái
    * @param {Array<string>} options.organizationIds - Lọc theo danh sách tổ chức
+   * @param {Object} options.filters - Bộ lọc nâng cao theo cột với condition
    * @returns {Promise<Object>} Dữ liệu phân trang
    */
-  async getPaged({ pageNumber = 1, pageSize = 15, searchText = '', status = null, organizationIds = null } = {}) {
+  async getPaged({ 
+    pageNumber = 1, 
+    pageSize = 15, 
+    searchText = '', 
+    status = null, 
+    organizationIds = null,
+    filters = null 
+  } = {}) {
     const params = { pageNumber, pageSize }
     if (searchText) params.searchText = searchText
     if (status !== null) params.status = status
     if (organizationIds?.length) params.organizationIds = organizationIds
+    
+    // Thêm các filter nâng cao với condition
+    if (filters) {
+      // Format: { key: { condition, value } }
+      const filterKeys = {
+        salaryCompositionCode: 'salaryCompositionCodeFilter',
+        salaryCompositionName: 'salaryCompositionNameFilter',
+        salaryCompositionType: 'salaryCompositionTypeFilter',
+        salaryCompositionNature: 'salaryCompositionNatureFilter',
+        isTaxable: 'isTaxableFilter',
+        isTaxDeductible: 'isTaxDeductibleFilter',
+        quota: 'quotaFilter',
+        valueType: 'valueTypeFilter',
+        value: 'valueFilter',
+        description: 'descriptionFilter',
+        showOnPayslip: 'showOnPayslipFilter',
+        source: 'sourceFilter'
+      }
+      
+      Object.entries(filters).forEach(([key, filterData]) => {
+        const apiKey = filterKeys[key]
+        if (apiKey && filterData) {
+          params[`${apiKey}.condition`] = filterData.condition
+          if (filterData.value !== undefined && filterData.value !== null && filterData.value !== '') {
+            params[`${apiKey}.value`] = filterData.value
+          }
+        }
+      })
+    }
     
     const response = await httpClient.get(`${this.endpoint}/paged`, { 
       params,

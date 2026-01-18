@@ -190,12 +190,14 @@
           @apply="onApplyFilter"
         >
           <MsFilterCheckbox
-            v-for="(filter, key) in filterColumns"
+            v-for="key in filteredFilterColumns"
             :key="key"
             v-model="filterColumns[key].checked"
             v-model:condition="filterColumns[key].condition"
             v-model:value="filterColumns[key].value"
             :label="filterColumnLabels[key]"
+            :type="filterColumnConfig[key]?.type || 'input'"
+            :value-options="filterColumnConfig[key]?.options || []"
           />
         </MsFilterPanel>
       </div>
@@ -294,19 +296,99 @@ const filterSearchText = ref('')
 const filterColumns = ref({
   salaryCompositionCode: { checked: false, condition: 'contains', value: '' },
   salaryCompositionName: { checked: false, condition: 'contains', value: '' },
-  salaryCompositionStatus: { checked: false, condition: 'contains', value: '' },
-  salaryCompositionSource: { checked: false, condition: 'contains', value: '' },
+  salaryCompositionType: { checked: false, condition: 'equals', value: '' },
+  salaryCompositionNature: { checked: false, condition: 'equals', value: '' },
+  isTaxable: { checked: false, condition: 'equals', value: '' },
+  isTaxDeductible: { checked: false, condition: 'equals', value: '' },
+  quota: { checked: false, condition: 'contains', value: '' },
+  valueType: { checked: false, condition: 'equals', value: '' },
   value: { checked: false, condition: 'contains', value: '' },
-  description: { checked: false, condition: 'contains', value: '' }
+  description: { checked: false, condition: 'contains', value: '' },
+  showOnPayslip: { checked: false, condition: 'equals', value: '' },
+  salaryCompositionSource: { checked: false, condition: 'equals', value: '' }
 })
 
 const filterColumnLabels = {
   salaryCompositionCode: 'Mã thành phần',
   salaryCompositionName: 'Tên thành phần',
-  salaryCompositionStatus: 'Trạng thái',
-  salaryCompositionSource: 'Nguồn',
-  value: 'Công thức',
-  description: 'Diễn giải'
+  salaryCompositionType: 'Loại thành phần',
+  salaryCompositionNature: 'Tính chất',
+  isTaxable: 'Chịu thuế',
+  isTaxDeductible: 'Giảm trừ khi tính thuế',
+  quota: 'Định mức',
+  valueType: 'Kiểu giá trị',
+  value: 'Giá trị',
+  description: 'Mô tả',
+  showOnPayslip: 'Hiển thị trên phiếu lương',
+  salaryCompositionSource: 'Nguồn tạo'
+}
+
+const filterColumnConfig = {
+  salaryCompositionCode: { type: 'input' },
+  salaryCompositionName: { type: 'input' },
+  salaryCompositionType: {
+    type: 'select',
+    options: [
+      { value: 'employee_info', label: 'Thông tin nhân viên' },
+      { value: 'attendance', label: 'Chấm công' },
+      { value: 'revenue', label: 'Doanh số' },
+      { value: 'kpi', label: 'KPI' },
+      { value: 'product', label: 'Sản phẩm' },
+      { value: 'salary', label: 'Lương' },
+      { value: 'pit', label: 'Thuế TNCN' },
+      { value: 'insurance_union', label: 'Bảo hiểm - Công đoàn' },
+      { value: 'other', label: 'Khác' }
+    ]
+  },
+  salaryCompositionNature: {
+    type: 'select',
+    options: [
+      { value: 'income', label: 'Thu nhập' },
+      { value: 'deduction', label: 'Khấu trừ' },
+      { value: 'other', label: 'Khác' }
+    ]
+  },
+  isTaxable: {
+    type: 'select',
+    options: [
+      { value: 'true', label: 'Có' },
+      { value: 'false', label: 'Không' }
+    ]
+  },
+  isTaxDeductible: {
+    type: 'select',
+    options: [
+      { value: 'true', label: 'Có' },
+      { value: 'false', label: 'Không' }
+    ]
+  },
+  quota: { type: 'input' },
+  valueType: {
+    type: 'select',
+    options: [
+      { value: 'number', label: 'Số' },
+      { value: 'currency', label: 'Tiền tệ' },
+      { value: 'percent', label: 'Phần trăm' },
+      { value: 'text', label: 'Chữ' },
+      { value: 'date', label: 'Ngày' }
+    ]
+  },
+  value: { type: 'input' },
+  description: { type: 'input' },
+  showOnPayslip: {
+    type: 'select',
+    options: [
+      { value: 'true', label: 'Có' },
+      { value: 'false', label: 'Không' }
+    ]
+  },
+  salaryCompositionSource: {
+    type: 'select',
+    options: [
+      { value: 'manual', label: 'Tự thêm' },
+      { value: 'system', label: 'Hệ thống' }
+    ]
+  }
 }
 
 const toggleFilterPanel = () => {
@@ -317,15 +399,73 @@ const onFilterSearch = (val) => {
   filterSearchText.value = val
 }
 
+const filteredFilterColumns = computed(() => {
+  if (!filterSearchText.value) {
+    return Object.keys(filterColumns.value)
+  }
+  const searchLower = filterSearchText.value.toLowerCase()
+  return Object.keys(filterColumns.value).filter(key => {
+    const label = filterColumnLabels[key] || ''
+    return label.toLowerCase().includes(searchLower)
+  })
+})
+
 const onClearFilter = () => {
   Object.keys(filterColumns.value).forEach(key => {
-    filterColumns.value[key] = { checked: false, condition: 'contains', value: '' }
+    const defaultCondition = filterColumnConfig[key]?.type === 'select' ? 'equals' : 'contains'
+    filterColumns.value[key] = { checked: false, condition: defaultCondition, value: '' }
   })
+  currentPage.value = 1
+  fetchSalaryComponents()
+}
+
+/** Xây dựng object filters từ filterColumns để gửi lên API */
+const buildFiltersFromColumns = () => {
+  const filters = {}
+  
+  // Map key trong filterColumns sang key API
+  const keyMapping = {
+    salaryCompositionCode: 'salaryCompositionCode',
+    salaryCompositionName: 'salaryCompositionName',
+    salaryCompositionType: 'salaryCompositionType',
+    salaryCompositionNature: 'salaryCompositionNature',
+    isTaxable: 'isTaxable',
+    isTaxDeductible: 'isTaxDeductible',
+    quota: 'quota',
+    valueType: 'valueType',
+    value: 'value',
+    description: 'description',
+    showOnPayslip: 'showOnPayslip',
+    salaryCompositionSource: 'source'
+  }
+  
+  Object.keys(filterColumns.value).forEach(key => {
+    const col = filterColumns.value[key]
+    if (col.checked) {
+      const apiKey = keyMapping[key]
+      if (apiKey) {
+        // Nếu condition là empty/notEmpty thì không cần value
+        if (col.condition === 'empty' || col.condition === 'notEmpty') {
+          filters[apiKey] = {
+            condition: col.condition,
+            value: ''
+          }
+        } else if (col.value !== '' && col.value !== null && col.value !== undefined) {
+          filters[apiKey] = {
+            condition: col.condition,
+            value: col.value
+          }
+        }
+      }
+    }
+  })
+  
+  return Object.keys(filters).length > 0 ? filters : null
 }
 
 const onApplyFilter = () => {
-  // Apply filter logic here
-  showFilterPanel.value = false
+  currentPage.value = 1
+  fetchSalaryComponents()
 }
 const loading = ref(false)
 const dataGridRef = ref(null)
@@ -685,7 +825,8 @@ const fetchSalaryComponents = async () => {
       pageSize: pageSize.value,
       searchText: searchText.value || '',
       status: statusValue,
-      organizationIds: selectedUnits.value?.length ? selectedUnits.value : null
+      organizationIds: selectedUnits.value?.length ? selectedUnits.value : null,
+      filters: buildFiltersFromColumns()
     })
     salaryComponents.value = mapDataForDisplay(result.data)
     totalRecords.value = result.totalRecords

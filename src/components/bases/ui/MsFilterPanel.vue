@@ -82,7 +82,6 @@ const onClearFilter = () => {
 
 const onApplyFilter = () => {
   emit('apply')
-  close()
 }
 </script>
 
@@ -128,7 +127,7 @@ const onApplyFilter = () => {
   margin-top: 12px;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
-  background: #eeeff2;
+  background: #ffffff;
   overflow: hidden;
 }
 

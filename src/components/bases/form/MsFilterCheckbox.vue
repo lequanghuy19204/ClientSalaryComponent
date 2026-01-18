@@ -17,17 +17,29 @@
         <!-- Condition Select -->
         <MsSelect
           v-model="conditionValue"
-          :options="conditionOptions"
+          :options="computedConditionOptions"
           placeholder="Chọn điều kiện"
           size="small"
           class="filter-condition-select"
         />
-        <!-- Value Input -->
+
+        <!-- Input type: Value Input -->
         <MsInput
-          v-if="showValueInput"
+          v-if="type === 'input' && showValueField"
+          ref="inputRef"
           v-model="inputValue"
           placeholder="Nhập giá trị"
           class="filter-value-input"
+        />
+
+        <!-- Select type: Value Select -->
+        <MsSelect
+          v-if="type === 'select' && showValueField"
+          v-model="inputValue"
+          :options="valueOptions"
+          placeholder="Chọn giá trị"
+          size="small"
+          class="filter-value-select"
         />
       </div>
     </Transition>
@@ -35,9 +47,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import MsSelect from '@/components/bases/form/MsSelect.vue'
 import MsInput from '@/components/bases/form/MsInput.vue'
+
+const inputRef = ref(null)
 
 const props = defineProps({
   modelValue: {
@@ -48,21 +62,22 @@ const props = defineProps({
     type: String,
     default: ''
   },
+  type: {
+    type: String,
+    default: 'input',
+    validator: (val) => ['input', 'select'].includes(val)
+  },
   conditionOptions: {
     type: Array,
-    default: () => [
-      { value: 'contains', label: 'Chứa' },
-      { value: 'notContains', label: 'Không chứa' },
-      { value: 'equals', label: 'Bằng' },
-      { value: 'startsWith', label: 'Bắt đầu bằng' },
-      { value: 'endsWith', label: 'Kết thúc bằng' },
-      { value: 'empty', label: 'Trống' },
-      { value: 'notEmpty', label: 'Không trống' }
-    ]
+    default: null
+  },
+  valueOptions: {
+    type: Array,
+    default: () => []
   },
   condition: {
     type: String,
-    default: 'contains'
+    default: ''
   },
   value: {
     type: String,
@@ -72,8 +87,32 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'update:condition', 'update:value', 'change'])
 
-const conditionValue = ref(props.condition)
+const conditionValue = ref(props.condition || (props.type === 'input' ? 'contains' : 'equals'))
 const inputValue = ref(props.value)
+
+const inputConditionOptions = [
+  { value: 'contains', label: 'Chứa' },
+  { value: 'notContains', label: 'Không chứa' },
+  { value: 'equals', label: 'Bằng' },
+  { value: 'startsWith', label: 'Bắt đầu bằng' },
+  { value: 'endsWith', label: 'Kết thúc bằng' },
+  { value: 'empty', label: 'Trống' },
+  { value: 'notEmpty', label: 'Không trống' }
+]
+
+const selectConditionOptions = [
+  { value: 'equals', label: 'Bằng' },
+  { value: 'notEquals', label: 'Khác' },
+  { value: 'empty', label: 'Trống' },
+  { value: 'notEmpty', label: 'Không trống' }
+]
+
+const computedConditionOptions = computed(() => {
+  if (props.conditionOptions) {
+    return props.conditionOptions
+  }
+  return props.type === 'select' ? selectConditionOptions : inputConditionOptions
+})
 
 watch(conditionValue, (val) => {
   emit('update:condition', val)
@@ -87,7 +126,7 @@ const checkboxIconClass = computed(() => {
   return props.modelValue ? 'icon-mi-square-check-primary' : 'icon-mi-square-default'
 })
 
-const showValueInput = computed(() => {
+const showValueField = computed(() => {
   return conditionValue.value !== 'empty' && conditionValue.value !== 'notEmpty'
 })
 
@@ -95,19 +134,29 @@ const toggleCheck = () => {
   const newValue = !props.modelValue
   emit('update:modelValue', newValue)
   emit('change', newValue)
+
+  if (newValue && props.type === 'input') {
+    nextTick(() => {
+      const input = inputRef.value?.$el?.querySelector('input')
+      if (input) {
+        input.focus()
+      }
+    })
+  }
 }
 </script>
 
 <style scoped>
 .ms-filter-checkbox {
-  padding: 8px 16px;
+  padding: 8px 8px;
+  margin: 0 8px;
 }
 
 .ms-filter-checkbox.checked-item {
   padding-bottom: 8px;
   background: #eafbf2;
   border-radius: 4px;
-  margin: 8px;
+  margin: 0 8px 8px 8px;
 }
 
 .filter-checkbox-header {
@@ -135,7 +184,8 @@ const toggleCheck = () => {
   gap: 8px;
 }
 
-.filter-condition-select :deep(.ms-select) {
+.filter-condition-select :deep(.ms-select),
+.filter-value-select :deep(.ms-select) {
   width: 100%;
   height: 36px;
 }

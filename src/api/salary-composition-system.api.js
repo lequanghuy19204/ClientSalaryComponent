@@ -57,12 +57,41 @@ class SalaryCompositionSystemApi extends BaseApi {
    * @param {number} options.pageSize - Số bản ghi mỗi trang (mặc định: 15)
    * @param {string} options.searchText - Từ khóa tìm kiếm
    * @param {string} options.type - Loại thành phần lương
+   * @param {Object} options.filters - Bộ lọc nâng cao theo cột với condition
    * @returns {Promise<Object>} Dữ liệu phân trang
    */
-  async getPaged({ pageNumber = 1, pageSize = 15, searchText = '', type = null } = {}) {
+  async getPaged({ pageNumber = 1, pageSize = 15, searchText = '', type = null, filters = null } = {}) {
     const params = { pageNumber, pageSize }
     if (searchText) params.searchText = searchText
     if (type) params.type = type
+    
+    // Thêm các filter nâng cao với condition
+    if (filters) {
+      const filterKeys = {
+        salaryCompositionSystemCode: 'salaryCompositionSystemCodeFilter',
+        salaryCompositionSystemName: 'salaryCompositionSystemNameFilter',
+        salaryCompositionType: 'salaryCompositionTypeFilter',
+        salaryCompositionNature: 'salaryCompositionNatureFilter',
+        isTaxable: 'isTaxableFilter',
+        isTaxDeductible: 'isTaxDeductibleFilter',
+        quota: 'quotaFilter',
+        valueType: 'valueTypeFilter',
+        value: 'valueFilter',
+        description: 'descriptionFilter',
+        showOnPayslip: 'showOnPayslipFilter'
+      }
+      
+      Object.entries(filters).forEach(([key, filterData]) => {
+        const apiKey = filterKeys[key]
+        if (apiKey && filterData) {
+          params[`${apiKey}.condition`] = filterData.condition
+          if (filterData.value !== undefined && filterData.value !== null && filterData.value !== '') {
+            params[`${apiKey}.value`] = filterData.value
+          }
+        }
+      })
+    }
+    
     const response = await httpClient.get(`${this.endpoint}/paged`, { params })
     return response.data
   }

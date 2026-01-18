@@ -15,77 +15,81 @@
       </div>
     </div>
 
-    <!-- Content Card -->
-    <div class="page-content d-flex flex-column flex-grow-1 overflow-hidden bg-white rounded-1">
-      <!-- Filter Section -->
-      <div class="page-filter d-flex align-items-center justify-content-between flex-shrink-0 bg-white">
-        <!-- Selection Bar - hiển thị khi có item được chọn -->
-        <template v-if="selectedItems.length > 0">
-          <div class="selection-bar d-flex align-items-center">
-            <div class="d-flex align-items-center">
-              <span>Đã chọn</span>
-              <b class="selected-amount">{{ selectedItems.length }}</b>
+    <!-- Content Card with Filter Panel -->
+    <div class="page-content-wrapper d-flex flex-grow-1 overflow-hidden">
+      <!-- Main Content -->
+      <div class="page-content d-flex flex-column flex-grow-1 overflow-hidden bg-white rounded-1">
+        <!-- Filter Section -->
+        <div class="page-filter d-flex align-items-center justify-content-between flex-shrink-0 bg-white">
+          <!-- Selection Bar - hiển thị khi có item được chọn -->
+          <template v-if="selectedItems.length > 0">
+            <div class="selection-bar d-flex align-items-center">
+              <div class="d-flex align-items-center">
+                <span>Đã chọn</span>
+                <b class="selected-amount">{{ selectedItems.length }}</b>
+              </div>
+              <div class="deselect-btn" @click="clearSelection">Bỏ chọn</div>
+              <MsButton
+                icon="icon-mi-plus"
+                variant="secondary"
+                class="btn-add-to-list"
+                @click="addSelectedToList"
+              >
+                Đưa vào danh sách sử dụng
+              </MsButton>
             </div>
-            <div class="deselect-btn" @click="clearSelection">Bỏ chọn</div>
-            <MsButton
-              icon="icon-mi-plus"
-              variant="secondary"
-              class="btn-add-to-list"
-              @click="addSelectedToList"
-            >
-              Đưa vào danh sách sử dụng
-            </MsButton>
-          </div>
-        </template>
+          </template>
 
-        <!-- Normal Filter - hiển thị khi không có item được chọn -->
-        <template v-else>
-          <!-- Search Input -->
-          <div class="filter-search d-flex align-items-center overflow-hidden bg-white rounded-1">
-            <div class="search-icon-wrapper d-flex align-items-center justify-content-center">
-              <span class="icon d-inline-block flex-shrink-0 icon-search"></span>
+          <!-- Normal Filter - hiển thị khi không có item được chọn -->
+          <template v-else>
+            <!-- Search Input -->
+            <div class="filter-search d-flex align-items-center overflow-hidden bg-white rounded-1">
+              <div class="search-icon-wrapper d-flex align-items-center justify-content-center">
+                <span class="icon d-inline-block flex-shrink-0 icon-search"></span>
+              </div>
+              <MsInput
+                v-model="searchText"
+                placeholder="Tìm kiếm"
+                class="search-input-wrapper"
+                @keyup.enter="onSearch"
+              />
             </div>
-            <MsInput
-              v-model="searchText"
-              placeholder="Tìm kiếm"
-              class="search-input-wrapper"
-              @keyup.enter="onSearch"
-            />
-          </div>
 
-          <!-- Filter Controls -->
-          <div class="filter-controls d-flex align-items-center gap-2">
-            <!-- Tất cả loại thành phần -->
-            <MsSelect
-              v-model="selectedType"
-              :options="typeOptions"
-              placeholder="Tất cả loại thành phần"
-              size="small"
-              :no-scroll="true"
-              class="filter-type-select"
-            />
+            <!-- Filter Controls -->
+            <div class="filter-controls d-flex align-items-center gap-2">
+              <!-- Tất cả loại thành phần -->
+              <MsSelect
+                v-model="selectedType"
+                :options="typeOptions"
+                placeholder="Tất cả loại thành phần"
+                size="small"
+                :no-scroll="true"
+                class="filter-type-select"
+              />
 
-            <!-- Filter Button -->
-            <MsButton
-              icon="icon-mi-filter"
-              variant="text"
-              class="filter-btn"
-              title="Bộ lọc"
-              icon-hover
-            />
+              <!-- Filter Button -->
+              <MsButton
+                icon="icon-mi-filter"
+                variant="text"
+                class="filter-btn"
+                :class="{ 'filter-btn-active': showFilterPanel }"
+                title="Bộ lọc"
+                icon-hover
+                @click="toggleFilterPanel"
+              />
 
-            <!-- Column Config Button -->
-            <MsColumnConfig
-              :columns="tableColumns"
-              :default-columns="defaultColumns"
-              storage-key="system-salary-category-columns"
-              :pinned-column="pinnedColumn"
-              @update:columns="onColumnsChange"
-              @config-loaded="onConfigLoaded"
-            />
-          </div>
-        </template>
-      </div>
+              <!-- Column Config Button -->
+              <MsColumnConfig
+                :columns="tableColumns"
+                :default-columns="defaultColumns"
+                storage-key="system-salary-category-columns"
+                :pinned-column="pinnedColumn"
+                @update:columns="onColumnsChange"
+                @config-loaded="onConfigLoaded"
+              />
+            </div>
+          </template>
+        </div>
 
       <!-- Table Section -->
       <BaseDataGrid
@@ -112,6 +116,28 @@
           <MsFormulaCell :value="data.data.displayValue" />
         </template>
       </BaseDataGrid>
+    </div>
+
+      <!-- Filter Panel -->
+      <MsFilterPanel
+        v-model="showFilterPanel"
+        title="Bộ lọc"
+        :show-search="true"
+        @search="onFilterSearch"
+        @clear="onClearFilter"
+        @apply="onApplyFilter"
+      >
+        <MsFilterCheckbox
+          v-for="key in filteredFilterColumns"
+          :key="key"
+          v-model="filterColumns[key].checked"
+          v-model:condition="filterColumns[key].condition"
+          v-model:value="filterColumns[key].value"
+          :label="filterColumnLabels[key]"
+          :type="filterColumnConfig[key]?.type || 'input'"
+          :value-options="filterColumnConfig[key]?.options || []"
+        />
+      </MsFilterPanel>
     </div>
   </div>
 
@@ -162,6 +188,8 @@ import MsInput from '@/components/bases/form/MsInput.vue'
 import MsSelect from '@/components/bases/form/MsSelect.vue'
 import MsConfirmDialog from '@/components/bases/ui/MsConfirmDialog.vue'
 import MsColumnConfig from '@/components/bases/ui/MsColumnConfig.vue'
+import MsFilterPanel from '@/components/bases/ui/MsFilterPanel.vue'
+import MsFilterCheckbox from '@/components/bases/form/MsFilterCheckbox.vue'
 import { salaryCompositionSystemApi } from '@/api'
 import { useToast, useGridConfig } from '@/composables'
 
@@ -178,6 +206,174 @@ const systemCategories = ref([])
 const selectedItems = ref([])
 const dataGridRef = ref(null)
 const pinnedColumn = ref(null)
+
+// Filter panel state
+const showFilterPanel = ref(false)
+const filterSearchText = ref('')
+const filterColumns = ref({
+  salaryCompositionSystemCode: { checked: false, condition: 'contains', value: '' },
+  salaryCompositionSystemName: { checked: false, condition: 'contains', value: '' },
+  salaryCompositionType: { checked: false, condition: 'equals', value: '' },
+  salaryCompositionNature: { checked: false, condition: 'equals', value: '' },
+  isTaxable: { checked: false, condition: 'equals', value: '' },
+  isTaxDeductible: { checked: false, condition: 'equals', value: '' },
+  quota: { checked: false, condition: 'contains', value: '' },
+  valueType: { checked: false, condition: 'equals', value: '' },
+  value: { checked: false, condition: 'contains', value: '' },
+  description: { checked: false, condition: 'contains', value: '' },
+  showOnPayslip: { checked: false, condition: 'equals', value: '' }
+})
+
+const filterColumnLabels = {
+  salaryCompositionSystemCode: 'Mã thành phần',
+  salaryCompositionSystemName: 'Tên thành phần',
+  salaryCompositionType: 'Loại thành phần',
+  salaryCompositionNature: 'Tính chất',
+  isTaxable: 'Chịu thuế',
+  isTaxDeductible: 'Giảm trừ khi tính thuế',
+  quota: 'Định mức',
+  valueType: 'Kiểu giá trị',
+  value: 'Giá trị',
+  description: 'Mô tả',
+  showOnPayslip: 'Hiển thị trên phiếu lương'
+}
+
+const filterColumnConfig = {
+  salaryCompositionSystemCode: { type: 'input' },
+  salaryCompositionSystemName: { type: 'input' },
+  salaryCompositionType: {
+    type: 'select',
+    options: [
+      { value: 'employee_info', label: 'Thông tin nhân viên' },
+      { value: 'attendance', label: 'Chấm công' },
+      { value: 'revenue', label: 'Doanh số' },
+      { value: 'kpi', label: 'KPI' },
+      { value: 'product', label: 'Sản phẩm' },
+      { value: 'salary', label: 'Lương' },
+      { value: 'pit', label: 'Thuế TNCN' },
+      { value: 'insurance_union', label: 'Bảo hiểm - Công đoàn' },
+      { value: 'other', label: 'Khác' }
+    ]
+  },
+  salaryCompositionNature: {
+    type: 'select',
+    options: [
+      { value: 'income', label: 'Thu nhập' },
+      { value: 'deduction', label: 'Khấu trừ' },
+      { value: 'other', label: 'Khác' }
+    ]
+  },
+  isTaxable: {
+    type: 'select',
+    options: [
+      { value: 'true', label: 'Có' },
+      { value: 'false', label: 'Không' }
+    ]
+  },
+  isTaxDeductible: {
+    type: 'select',
+    options: [
+      { value: 'true', label: 'Có' },
+      { value: 'false', label: 'Không' }
+    ]
+  },
+  quota: { type: 'input' },
+  valueType: {
+    type: 'select',
+    options: [
+      { value: 'number', label: 'Số' },
+      { value: 'currency', label: 'Tiền tệ' },
+      { value: 'percent', label: 'Phần trăm' },
+      { value: 'text', label: 'Chữ' },
+      { value: 'date', label: 'Ngày' }
+    ]
+  },
+  value: { type: 'input' },
+  description: { type: 'input' },
+  showOnPayslip: {
+    type: 'select',
+    options: [
+      { value: 'true', label: 'Có' },
+      { value: 'false', label: 'Không' }
+    ]
+  }
+}
+
+const toggleFilterPanel = () => {
+  showFilterPanel.value = !showFilterPanel.value
+}
+
+const onFilterSearch = (val) => {
+  filterSearchText.value = val
+}
+
+const filteredFilterColumns = computed(() => {
+  if (!filterSearchText.value) {
+    return Object.keys(filterColumns.value)
+  }
+  const searchLower = filterSearchText.value.toLowerCase()
+  return Object.keys(filterColumns.value).filter(key => {
+    const label = filterColumnLabels[key] || ''
+    return label.toLowerCase().includes(searchLower)
+  })
+})
+
+/** Xây dựng object filters từ filterColumns để gửi lên API */
+const buildFiltersFromColumns = () => {
+  const filters = {}
+  
+  // Map key trong filterColumns sang key API
+  const keyMapping = {
+    salaryCompositionSystemCode: 'salaryCompositionSystemCode',
+    salaryCompositionSystemName: 'salaryCompositionSystemName',
+    salaryCompositionType: 'salaryCompositionType',
+    salaryCompositionNature: 'salaryCompositionNature',
+    isTaxable: 'isTaxable',
+    isTaxDeductible: 'isTaxDeductible',
+    quota: 'quota',
+    valueType: 'valueType',
+    value: 'value',
+    description: 'description',
+    showOnPayslip: 'showOnPayslip'
+  }
+  
+  Object.keys(filterColumns.value).forEach(key => {
+    const col = filterColumns.value[key]
+    if (col.checked) {
+      const apiKey = keyMapping[key]
+      if (apiKey) {
+        // Nếu condition là empty/notEmpty thì không cần value
+        if (col.condition === 'empty' || col.condition === 'notEmpty') {
+          filters[apiKey] = {
+            condition: col.condition,
+            value: ''
+          }
+        } else if (col.value !== '' && col.value !== null && col.value !== undefined) {
+          filters[apiKey] = {
+            condition: col.condition,
+            value: col.value
+          }
+        }
+      }
+    }
+  })
+  
+  return Object.keys(filters).length > 0 ? filters : null
+}
+
+const onClearFilter = () => {
+  Object.keys(filterColumns.value).forEach(key => {
+    const defaultCondition = filterColumnConfig[key]?.type === 'select' ? 'equals' : 'contains'
+    filterColumns.value[key] = { checked: false, condition: defaultCondition, value: '' }
+  })
+  currentPage.value = 1
+  fetchSystemCategories()
+}
+
+const onApplyFilter = () => {
+  currentPage.value = 1
+  fetchSystemCategories()
+}
 
 // Dialog states
 const showConfirmDialog = ref(false)
@@ -373,7 +569,8 @@ const fetchSystemCategories = async () => {
       pageNumber: currentPage.value,
       pageSize: pageSize.value,
       searchText: searchText.value || '',
-      type: selectedType.value
+      type: selectedType.value,
+      filters: buildFiltersFromColumns()
     })
     systemCategories.value = transformData(result.data)
     totalRecords.value = result.totalRecords
@@ -531,8 +728,14 @@ onMounted(() => {
 }
 
 /* Content Card */
+.page-content-wrapper {
+  gap: 0;
+}
+
 .page-content {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.25s ease;
+  min-width: 0;
 }
 
 /* Filter Section */
@@ -584,6 +787,11 @@ onMounted(() => {
   height: 36px;
   min-width: 36px;
   padding: 0;
+}
+
+.filter-btn-active :deep(.ms-btn) {
+  background: #eafbf2;
+  border-color: #34b057;
 }
 
 /* Selection Bar */
