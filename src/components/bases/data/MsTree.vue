@@ -299,10 +299,12 @@ const displayItemsWithIds = computed(() => {
   return result
 })
 
+/** Danh sách các mục đã chọn hiển thị (giới hạn bởi maxSelectedLabels) */
 const visibleFilterItems = computed(() => {
   return selectedNames.value.slice(0, props.maxSelectedLabels)
 })
 
+/** Số lượng mục đã chọn bị ẩn (hiển thị dạng "+N") */
 const hiddenFilterCount = computed(() => {
   return selectedNames.value.length > props.maxSelectedLabels
     ? selectedNames.value.length - props.maxSelectedLabels

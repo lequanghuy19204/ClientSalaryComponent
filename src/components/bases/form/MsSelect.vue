@@ -80,6 +80,7 @@ const modelValue = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
+/** Tính toán class CSS cho kích thước của select */
 const sizeClass = computed(() => {
   const sizes = {
     small: 'ms-select-small',
@@ -90,6 +91,7 @@ const sizeClass = computed(() => {
   return sizes[props.size] || 'ms-select-medium'
 })
 
+/** Tính toán các class CSS cho panel dropdown */
 const panelClasses = computed(() => {
   return props.noScroll ? 'ms-select-panel ms-select-panel-no-scroll' : 'ms-select-panel'
 })

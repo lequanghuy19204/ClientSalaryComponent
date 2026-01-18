@@ -70,10 +70,12 @@ const activeFilters = computed(() => {
 
 const hasActiveFilters = computed(() => activeFilters.value.length > 0)
 
+/** Lấy nhãn điều kiện lọc theo ngôn ngữ */
 const getConditionText = (condition) => {
   return conditionLabels[condition] || condition
 }
 
+/** Lấy giá trị hiển thị cho bộ lọc - xử lý trường hợp điều kiện rỗng/không rỗng */
 const getDisplayValue = (filter) => {
   if (filter.condition === 'empty' || filter.condition === 'notEmpty') {
     return ''
@@ -81,6 +83,7 @@ const getDisplayValue = (filter) => {
   return `"${filter.value || 'Rỗng'}"`
 }
 
+/** Lấy tiêu đề tooltip đầy đủ cho bộ lọc */
 const getFilterTitle = (filter) => {
   const conditionText = getConditionText(filter.condition)
   const valueText = filter.condition === 'empty' || filter.condition === 'notEmpty'
@@ -89,10 +92,12 @@ const getFilterTitle = (filter) => {
   return `${filter.label} ${conditionText}${valueText}`
 }
 
+/** Xóa một bộ lọc theo key */
 const removeFilter = (key) => {
   emit('remove', key)
 }
 
+/** Xóa tất cả bộ lọc đang hoạt động */
 const clearAll = () => {
   emit('clear-all')
 }

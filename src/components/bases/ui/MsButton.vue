@@ -59,6 +59,7 @@ const props = defineProps({
 
 const emit = defineEmits(['click'])
 
+/** Tính toán class CSS cho variant của button */
 const variantClass = computed(() => {
   const variants = {
     default: 'ms-btn-default',
@@ -70,6 +71,7 @@ const variantClass = computed(() => {
   return variants[props.variant] || 'ms-btn-default'
 })
 
+/** Tính toán class CSS cho kích thước của button */
 const sizeClass = computed(() => {
   const sizes = {
     small: 'ms-btn-sm',

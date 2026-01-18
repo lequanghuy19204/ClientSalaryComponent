@@ -415,6 +415,7 @@ const nextPage = () => {
   }
 }
 
+/** Danh sách các cột có template tùy chỉnh */
 const columnsWithTemplates = computed(() => {
   return props.columns.filter(col => col.cellTemplate)
 })

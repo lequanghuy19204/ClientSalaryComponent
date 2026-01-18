@@ -86,6 +86,7 @@ const modelValue = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
+/** Tính toán class CSS cho kích thước của multiselect */
 const sizeClass = computed(() => {
   const sizes = {
     small: 'ms-multiselect-small',

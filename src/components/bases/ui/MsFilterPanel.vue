@@ -72,14 +72,17 @@ watch(searchText, (val) => {
   emit('search', val)
 })
 
+/** Đóng panel lọc */
 const close = () => {
   emit('update:modelValue', false)
 }
 
+/** Xử lý xóa bộ lọc - emit sự kiện clear để component cha xử lý */
 const onClearFilter = () => {
   emit('clear')
 }
 
+/** Xử lý áp dụng bộ lọc - emit sự kiện apply để component cha thực hiện lọc */
 const onApplyFilter = () => {
   emit('apply')
 }

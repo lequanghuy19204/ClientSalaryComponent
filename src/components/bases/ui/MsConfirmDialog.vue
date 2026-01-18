@@ -107,6 +107,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'confirm', 'cancel', 'middle'])
 
+/** Tính toán style cho dialog dựa trên prop width */
 const dialogStyle = computed(() => ({
   width: typeof props.width === 'number' ? `${props.width}px` : props.width,
   minWidth: typeof props.width === 'number' ? `${props.width}px` : props.width

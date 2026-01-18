@@ -400,14 +400,17 @@ const filterColumnConfig = {
   }
 }
 
+/** Bật/tắt panel lọc */
 const toggleFilterPanel = () => {
   showFilterPanel.value = !showFilterPanel.value
 }
 
+/** Xử lý tìm kiếm trong panel lọc */
 const onFilterSearch = (val) => {
   filterSearchText.value = val
 }
 
+/** Danh sách key các cột lọc sau khi lọc theo từ khóa tìm kiếm */
 const filteredFilterColumns = computed(() => {
   if (!filterSearchText.value) {
     return Object.keys(filterColumns.value)
@@ -419,6 +422,7 @@ const filteredFilterColumns = computed(() => {
   })
 })
 
+/** Xóa tất cả bộ lọc và tải lại dữ liệu */
 const onClearFilter = () => {
   Object.keys(filterColumns.value).forEach(key => {
     const defaultCondition = filterColumnConfig[key]?.type === 'select' ? 'equals' : 'contains'
@@ -428,6 +432,7 @@ const onClearFilter = () => {
   fetchSalaryComponents()
 }
 
+/** Xóa một bộ lọc cụ thể theo key */
 const onRemoveFilter = (key) => {
   const defaultCondition = filterColumnConfig[key]?.type === 'select' ? 'equals' : 'contains'
   filterColumns.value[key] = { checked: false, condition: defaultCondition, value: '' }
@@ -479,6 +484,7 @@ const buildFiltersFromColumns = () => {
   return Object.keys(filters).length > 0 ? filters : null
 }
 
+/** Áp dụng bộ lọc và tải lại dữ liệu */
 const onApplyFilter = () => {
   currentPage.value = 1
   fetchSalaryComponents()

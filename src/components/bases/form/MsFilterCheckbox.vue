@@ -130,6 +130,7 @@ const showValueField = computed(() => {
   return conditionValue.value !== 'empty' && conditionValue.value !== 'notEmpty'
 })
 
+/** Bật/tắt checkbox lọc - emit sự kiện và focus vào input nếu là loại input */
 const toggleCheck = () => {
   const newValue = !props.modelValue
   emit('update:modelValue', newValue)
