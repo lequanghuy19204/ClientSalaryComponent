@@ -74,7 +74,7 @@
       <!-- Header with pin icon template -->
       <template #headerWithPinTemplate="{ data }">
         <div
-          class="header-with-pin d-flex align-items-center justify-content-between w-100"
+          class="header-with-pin d-flex align-items-center justify-content-between"
           @mouseenter="hoveredHeaderColumn = data.column.dataField"
           @mouseleave="hoveredHeaderColumn = null"
         >
@@ -297,6 +297,9 @@ const getColumnClass = (dataField, index) => {
   }
   if (isLastPinned) {
     classes += ' last-pinned-column'
+  }
+  if (dataField) {
+    classes += ` column-${dataField}`
   }
   return classes
 }
@@ -819,5 +822,9 @@ onBeforeUnmount(() => {
 
 .base-table-wrapper .status-text.inactive {
   color: #ff9900;
+}
+
+.base-table-wrapper .dx-datagrid-headers .dx-datagrid-text-content {
+  width: 100% !important;
 }
 </style>
