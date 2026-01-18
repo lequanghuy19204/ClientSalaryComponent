@@ -47,6 +47,14 @@
         </div>
       </div>
 
+      <!-- Active Filter Bar -->
+      <MsFilterBar
+        :filters="filterColumns"
+        :filter-labels="filterColumnLabels"
+        @remove="onRemoveFilter"
+        @clear-all="onClearFilter"
+      />
+
       <!-- Content Card with Filter Panel -->
       <div class="salary-content-wrapper d-flex flex-grow-1 overflow-hidden">
         <!-- Main Content -->
@@ -270,6 +278,7 @@ import MsConfirmDialog from '@/components/bases/ui/MsConfirmDialog.vue'
 import MsColumnConfig from '@/components/bases/ui/MsColumnConfig.vue'
 import MsFilterPanel from '@/components/bases/ui/MsFilterPanel.vue'
 import MsFilterCheckbox from '@/components/bases/form/MsFilterCheckbox.vue'
+import MsFilterBar from '@/components/bases/ui/MsFilterBar.vue'
 import SalaryComponentForm from '@/views/salaryComponent/SalaryComponentForm.vue'
 import SystemSalaryCategoryPopup from '@/views/salaryComponent/SystemSalaryCategoryPopup.vue'
 import salaryCompositionApi from '@/api/salary-composition.api'
@@ -415,6 +424,13 @@ const onClearFilter = () => {
     const defaultCondition = filterColumnConfig[key]?.type === 'select' ? 'equals' : 'contains'
     filterColumns.value[key] = { checked: false, condition: defaultCondition, value: '' }
   })
+  currentPage.value = 1
+  fetchSalaryComponents()
+}
+
+const onRemoveFilter = (key) => {
+  const defaultCondition = filterColumnConfig[key]?.type === 'select' ? 'equals' : 'contains'
+  filterColumns.value[key] = { checked: false, condition: defaultCondition, value: '' }
   currentPage.value = 1
   fetchSalaryComponents()
 }
