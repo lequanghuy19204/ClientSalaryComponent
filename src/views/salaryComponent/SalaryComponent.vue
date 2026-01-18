@@ -47,65 +47,69 @@
         </div>
       </div>
 
-      <!-- Content Card -->
-      <div class="salary-component d-flex flex-column flex-grow-1 overflow-hidden bg-white rounded-1">
-        <!-- Filter Section - Normal mode -->
-        <div v-if="selectedRows.length === 0" class="salary-filter d-flex align-items-center justify-content-between flex-shrink-0 bg-white">
-          <!-- Search Input -->
-          <div class="filter-search d-flex align-items-center overflow-hidden bg-white rounded-1">
-            <div class="search-icon-wrapper d-flex align-items-center justify-content-center">
-              <span class="icon d-inline-block flex-shrink-0 icon-search"></span>
+      <!-- Content Card with Filter Panel -->
+      <div class="salary-content-wrapper d-flex flex-grow-1 overflow-hidden">
+        <!-- Main Content -->
+        <div class="salary-component d-flex flex-column flex-grow-1 overflow-hidden bg-white rounded-1">
+          <!-- Filter Section - Normal mode -->
+          <div v-if="selectedRows.length === 0" class="salary-filter d-flex align-items-center justify-content-between flex-shrink-0 bg-white">
+            <!-- Search Input -->
+            <div class="filter-search d-flex align-items-center overflow-hidden bg-white rounded-1">
+              <div class="search-icon-wrapper d-flex align-items-center justify-content-center">
+                <span class="icon d-inline-block flex-shrink-0 icon-search"></span>
+              </div>
+              <MsInput
+                v-model="searchText"
+                placeholder="Tìm kiếm"
+                class="search-input-wrapper"
+                @keyup.enter="onSearch"
+              />
             </div>
-            <MsInput
-              v-model="searchText"
-              placeholder="Tìm kiếm"
-              class="search-input-wrapper"
-              @keyup.enter="onSearch"
-            />
+
+            <!-- Filter Controls -->
+            <div class="filter-controls d-flex align-items-center gap-2">
+              <!-- Tất cả trạng thái -->
+              <MsSelect
+                v-model="selectedStatus"
+                :options="statusOptions"
+                placeholder="Tất cả trạng thái"
+                size="small"
+                class="filter-status-select"
+              />
+
+              <!-- Tất cả đơn vị -->
+              <MsTree
+                v-model="selectedUnits"
+                :data-source="unitTreeData"
+                key-expr="organizationId"
+                display-expr="organizationName"
+                placeholder="Tất cả đơn vị"
+                :max-selected-labels="1"
+                class="filter-unit-tree"
+              />
+
+              <!-- Filter Button -->
+              <MsButton
+                icon="icon-mi-filter"
+                variant="text"
+                class="filter-btn"
+                :class="{ 'filter-btn-active': showFilterPanel }"
+                title="Bộ lọc"
+                icon-hover
+                @click="toggleFilterPanel"
+              />
+
+              <!-- Column Config Button -->
+              <MsColumnConfig
+                :columns="tableColumns"
+                :default-columns="defaultColumns"
+                storage-key="salary-component-columns"
+                :pinned-column="pinnedColumn"
+                @update:columns="onColumnsChange"
+                @config-loaded="onConfigLoaded"
+              />
+            </div>
           </div>
-
-          <!-- Filter Controls -->
-          <div class="filter-controls d-flex align-items-center gap-2">
-            <!-- Tất cả trạng thái -->
-            <MsSelect
-              v-model="selectedStatus"
-              :options="statusOptions"
-              placeholder="Tất cả trạng thái"
-              size="small"
-              class="filter-status-select"
-            />
-
-            <!-- Tất cả đơn vị -->
-            <MsTree
-              v-model="selectedUnits"
-              :data-source="unitTreeData"
-            key-expr="organizationId"
-            display-expr="organizationName"
-            placeholder="Tất cả đơn vị"
-            :max-selected-labels="1"
-            class="filter-unit-tree"
-          />
-
-          <!-- Filter Button -->
-          <MsButton
-            icon="icon-mi-filter"
-            variant="text"
-            class="filter-btn"
-            title="Bộ lọc"
-            icon-hover
-          />
-
-          <!-- Column Config Button -->
-          <MsColumnConfig
-            :columns="tableColumns"
-            :default-columns="defaultColumns"
-            storage-key="salary-component-columns"
-            :pinned-column="pinnedColumn"
-            @update:columns="onColumnsChange"
-            @config-loaded="onConfigLoaded"
-          />
-        </div>
-      </div>
 
       <!-- Selection Toolbar - When rows are selected -->
       <div v-else class="selection-toolbar d-flex align-items-center justify-content-between flex-shrink-0 bg-white">
@@ -175,6 +179,26 @@
         </template>
       </BaseDataGrid>
     </div>
+
+        <!-- Filter Panel -->
+        <MsFilterPanel
+          v-model="showFilterPanel"
+          title="Bộ lọc"
+          :show-search="true"
+          @search="onFilterSearch"
+          @clear="onClearFilter"
+          @apply="onApplyFilter"
+        >
+          <MsFilterCheckbox
+            v-for="(filter, key) in filterColumns"
+            :key="key"
+            v-model="filterColumns[key].checked"
+            v-model:condition="filterColumns[key].condition"
+            v-model:value="filterColumns[key].value"
+            :label="filterColumnLabels[key]"
+          />
+        </MsFilterPanel>
+      </div>
     </template>
   </div>
 
@@ -242,6 +266,8 @@ import MsInput from '@/components/bases/form/MsInput.vue'
 import MsSelect from '@/components/bases/form/MsSelect.vue'
 import MsConfirmDialog from '@/components/bases/ui/MsConfirmDialog.vue'
 import MsColumnConfig from '@/components/bases/ui/MsColumnConfig.vue'
+import MsFilterPanel from '@/components/bases/ui/MsFilterPanel.vue'
+import MsFilterCheckbox from '@/components/bases/form/MsFilterCheckbox.vue'
 import SalaryComponentForm from '@/views/salaryComponent/SalaryComponentForm.vue'
 import SystemSalaryCategoryPopup from '@/views/salaryComponent/SystemSalaryCategoryPopup.vue'
 import salaryCompositionApi from '@/api/salary-composition.api'
@@ -261,6 +287,46 @@ const editId = ref(null)
 
 const searchText = ref('')
 const selectedRows = ref([])
+
+// Filter panel state
+const showFilterPanel = ref(false)
+const filterSearchText = ref('')
+const filterColumns = ref({
+  salaryCompositionCode: { checked: false, condition: 'contains', value: '' },
+  salaryCompositionName: { checked: false, condition: 'contains', value: '' },
+  salaryCompositionStatus: { checked: false, condition: 'contains', value: '' },
+  salaryCompositionSource: { checked: false, condition: 'contains', value: '' },
+  value: { checked: false, condition: 'contains', value: '' },
+  description: { checked: false, condition: 'contains', value: '' }
+})
+
+const filterColumnLabels = {
+  salaryCompositionCode: 'Mã thành phần',
+  salaryCompositionName: 'Tên thành phần',
+  salaryCompositionStatus: 'Trạng thái',
+  salaryCompositionSource: 'Nguồn',
+  value: 'Công thức',
+  description: 'Diễn giải'
+}
+
+const toggleFilterPanel = () => {
+  showFilterPanel.value = !showFilterPanel.value
+}
+
+const onFilterSearch = (val) => {
+  filterSearchText.value = val
+}
+
+const onClearFilter = () => {
+  Object.keys(filterColumns.value).forEach(key => {
+    filterColumns.value[key] = { checked: false, condition: 'contains', value: '' }
+  })
+}
+
+const onApplyFilter = () => {
+  // Apply filter logic here
+  showFilterPanel.value = false
+}
 const loading = ref(false)
 const dataGridRef = ref(null)
 const showDropdown = ref(false)
@@ -884,8 +950,14 @@ const closeDropdown = () => {
 }
 
 /* Content Card */
+.salary-content-wrapper {
+  gap: 0;
+}
+
 .salary-component {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.25s ease;
+  min-width: 0;
 }
 
 /* Button Group Styling */
@@ -997,6 +1069,11 @@ const closeDropdown = () => {
   height: 36px;
   min-width: 36px;
   padding: 0;
+}
+
+.filter-btn-active :deep(.ms-btn) {
+  background: #eafbf2;
+  border-color: #34b057;
 }
 
 /* Selection Toolbar */
