@@ -53,6 +53,8 @@
                 :page-size-options="pageSizeSelectOptions"
                 :selectable="true"
                 :show-actions="false"
+                :show-pin-icon="false"
+                :default-pinned-column-index="-1"
                 @selection-changed="onSelectionChanged"
               >
                 <!-- Value (formula) column template -->

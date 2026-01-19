@@ -80,7 +80,7 @@
         >
           <span class="header-text">{{ data.column.caption }}</span>
           <span
-            v-if="hoveredHeaderColumn === data.column.dataField || pinnedColumn === data.column.dataField"
+            v-if="showPinIcon && (hoveredHeaderColumn === data.column.dataField || pinnedColumn === data.column.dataField)"
             class="pin-icon"
             :class="pinnedColumn === data.column.dataField ? 'icon-mi-pin' : 'icon-mi-uppin'"
             @click.stop="onPinColumn(data.column.dataField)"
@@ -232,6 +232,14 @@ const props = defineProps({
     type: Boolean,
     default: true
   },
+  showPinIcon: {
+    type: Boolean,
+    default: true
+  },
+  defaultPinnedColumnIndex: {
+    type: Number,
+    default: 0
+  },
   currentPage: {
     type: Number,
     default: 1
@@ -262,20 +270,18 @@ const tableWrapperRef = ref(null)
 const dataGridRef = ref(null)
 
 // Column pin state - stores the index of pinned column (all columns up to this index will be sticky)
-const pinnedColumnIndex = ref(0)
+const pinnedColumnIndex = ref(props.defaultPinnedColumnIndex)
 const hoveredHeaderColumn = ref(null)
 
 // Get pinned column dataField for display
 const pinnedColumn = computed(() => {
-  if (props.columns.length === 0) return null
+  if (props.columns.length === 0 || pinnedColumnIndex.value < 0) return null
   return props.columns[pinnedColumnIndex.value]?.dataField
 })
 
-// Initialize pinned column to first column (index 0)
-watch(() => props.columns, (cols) => {
-  if (cols && cols.length > 0 && pinnedColumnIndex.value === null) {
-    pinnedColumnIndex.value = 0
-  }
+// Initialize pinned column from prop
+watch(() => props.defaultPinnedColumnIndex, (newVal) => {
+  pinnedColumnIndex.value = newVal
 }, { immediate: true })
 
 /** Xử lý khi click ghim cột - nếu click vào cột đang ghim thì reset về cột đầu, ngược lại ghim cột được click */
@@ -795,7 +801,7 @@ onBeforeUnmount(() => {
 
 /* Last pinned column has a subtle border */
 .base-table-wrapper .last-pinned-column {
-  border-right: 1px solid #e0e0e0 !important;
+  border-right: 1px solid #ebebeb !important;
 }
 
 /* Action column fixed right - show on hover */
