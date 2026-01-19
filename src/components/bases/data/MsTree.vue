@@ -97,7 +97,7 @@ const props = defineProps({
   },
   selectNodesRecursive: {
     type: Boolean,
-    default: true
+    default: false
   },
   placeholder: {
     type: String,
