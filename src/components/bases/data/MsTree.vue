@@ -1,5 +1,5 @@
 <template>
-  <div class="ms-tree-wrapper" :class="{ 'ms-tree-disabled': disabled }">
+  <div class="ms-tree-wrapper" :class="{ 'ms-tree-disabled': disabled, 'has-selection': selectedValue.length > 0 }">
     <DxDropDownBox
       ref="dropDownBoxRef"
       class="ms-tree"
@@ -651,6 +651,11 @@ function onValueChanged(e) {
 :deep(.ms-tree.dx-state-focused) {
   border-color: #34b057;
   box-shadow: 0 0 0 1px #34b057;
+}
+
+/* Hide clear button when has selected items */
+.ms-tree-wrapper.has-selection :deep(.dx-clear-button-area) {
+  display: none !important;
 }
 
 .ms-tree-field {

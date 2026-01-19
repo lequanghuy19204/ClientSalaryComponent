@@ -99,6 +99,12 @@
       <DxPaging :enabled="false" />
     </DxDataGrid>
 
+      <!-- Empty State -->
+      <div v-if="!dataSource || dataSource.length === 0" class="empty-state">
+        <span class="icon-show-nodata empty-state-icon"></span>
+        <span class="empty-state-text">Không có dữ liệu</span>
+      </div>
+
       <!-- Floating Action Overlay -->
       <div
         v-if="showActions && hoveredRowData"
@@ -616,6 +622,33 @@ onBeforeUnmount(() => {
   min-width: 32px;
   padding: 0;
 }
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.empty-state-icon {
+  display: block;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.empty-state-text {
+  font-size: 14px;
+  color: #666;
+  font-style: italic;
+}
 </style>
 
 <style>
@@ -826,5 +859,10 @@ onBeforeUnmount(() => {
 
 .base-table-wrapper .dx-datagrid-headers .dx-datagrid-text-content {
   width: 100% !important;
+}
+
+/* Hide DevExtreme default no data text */
+.base-table-wrapper .dx-datagrid-nodata {
+  display: none !important;
 }
 </style>

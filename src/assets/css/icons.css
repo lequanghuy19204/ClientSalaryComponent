@@ -477,3 +477,16 @@
   height: 20px;
   background-color: #34b057 !important;
 }
+
+.icon-show-nodata {
+  display: inline-block;
+  position: absolute;
+  left: 50%;
+  -webkit-transform: translate(-50%, -100%);
+  transform: translate(-50%, -100%);
+  background-image: url(https://testcdnamisapp.misacdn.net/apps/payroll/static/img/EmptyState.49ed02a.svg?v=);
+  background-repeat: no-repeat;
+  width: 195px;
+  height: 125px;
+  background-position: -1156px -1316px;
+}
