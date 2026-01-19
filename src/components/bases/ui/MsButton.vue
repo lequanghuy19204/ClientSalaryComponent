@@ -106,7 +106,7 @@ const onClick = (event) => {
 
 /* Size variants */
 .ms-btn-sm {
-  height: 28px;
+  height: 27px;
   padding: 0 12px;
   font-size: 13px;
 }

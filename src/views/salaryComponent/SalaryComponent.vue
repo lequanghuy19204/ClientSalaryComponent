@@ -171,6 +171,7 @@
         @action="onAction"
         @column-pinned="onColumnPinned"
         @column-resized="onColumnResized"
+        @row-click="onRowClick"
       >
         <!-- Status column template -->
         <template #statusTemplate="{ data }">
@@ -1039,6 +1040,13 @@ const goToAddForm = () => {
   showForm.value = true
 }
 
+/** Xử lý khi click vào dòng trong bảng - chuyển đến form view */
+const onRowClick = (rowData) => {
+  formMode.value = 'view'
+  editId.value = rowData.salaryCompositionId
+  showForm.value = true
+}
+
 /** Xử lý khi quay lại từ form */
 const onFormBack = async (payload) => {
   if (payload?.action === 'duplicate') {
@@ -1048,10 +1056,19 @@ const onFormBack = async (payload) => {
     formMode.value = 'duplicate'
     editId.value = payload.id
     showForm.value = true
+  } else if (payload?.action === 'switch-to-edit') {
+    // Chuyển từ view sang edit mode
+    showForm.value = false
+    await nextTick()
+    formMode.value = 'edit'
+    editId.value = payload.id
+    showForm.value = true
   } else {
     showForm.value = false
     formMode.value = 'add'
     editId.value = null
+    // Load lại dữ liệu bảng khi quay lại
+    await fetchSalaryComponents()
   }
 }
 

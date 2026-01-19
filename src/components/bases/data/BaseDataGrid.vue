@@ -263,7 +263,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['selection-changed', 'action', 'update:currentPage', 'update:pageSize', 'page-change', 'page-size-change', 'column-pinned', 'column-resized'])
+const emit = defineEmits(['selection-changed', 'action', 'update:currentPage', 'update:pageSize', 'page-change', 'page-size-change', 'column-pinned', 'column-resized', 'row-click'])
 
 // Refs
 const tableWrapperRef = ref(null)
@@ -354,12 +354,23 @@ const computedActionButtons = computed(() => {
     })
 })
 
-/** Xử lý khi dòng được render - đăng ký sự kiện hover cho dòng dữ liệu */
+/** Xử lý khi dòng được render - đăng ký sự kiện hover và click cho dòng dữ liệu */
 const onRowPrepared = (e) => {
   if (e.rowType === 'data') {
     e.rowElement.addEventListener('mouseenter', () => onRowMouseEnter(e))
     e.rowElement.addEventListener('mouseleave', onRowMouseLeave)
+    e.rowElement.addEventListener('click', (event) => onRowClick(e, event))
+    e.rowElement.style.cursor = 'pointer'
   }
+}
+
+/** Xử lý khi click vào dòng - emit sự kiện row-click với dữ liệu dòng */
+const onRowClick = (e, event) => {
+  // Không emit nếu click vào checkbox hoặc action button
+  if (event.target.closest('.checkbox-column') || event.target.closest('.action-btn')) {
+    return
+  }
+  emit('row-click', e.data)
 }
 
 /** Xử lý khi di chuột vào dòng - lưu dữ liệu dòng và tính vị trí hiển thị overlay */
