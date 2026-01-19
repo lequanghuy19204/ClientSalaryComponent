@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import SalaryComponent from '../views/salaryComponent/SalaryComponent.vue'
-import SystemSalaryCategory from '../views/salaryComponent/SystemSalaryCategory.vue'
+import SystemSalaryCategory from '../views/salaryComponentSystem/SystemSalaryCategory.vue'
 import DashboardView from '../views/demo/DashboardView.vue'
 import SalaryTemplateView from '../views/demo/SalaryTemplateView.vue'
 import SalaryDataView from '../views/demo/SalaryDataView.vue'

@@ -280,7 +280,7 @@ import MsFilterPanel from '@/components/bases/ui/MsFilterPanel.vue'
 import MsFilterCheckbox from '@/components/bases/form/MsFilterCheckbox.vue'
 import MsFilterBar from '@/components/bases/ui/MsFilterBar.vue'
 import SalaryComponentForm from '@/views/salaryComponent/SalaryComponentForm.vue'
-import SystemSalaryCategoryPopup from '@/views/salaryComponent/SystemSalaryCategoryPopup.vue'
+import SystemSalaryCategoryPopup from '@/views/salaryComponentSystem/SystemSalaryCategoryPopup.vue'
 import salaryCompositionApi from '@/api/salary-composition.api'
 import { useOrganization, useToast, useGridConfig } from '@/composables'
 
@@ -443,7 +443,7 @@ const onRemoveFilter = (key) => {
 /** Xây dựng object filters từ filterColumns để gửi lên API */
 const buildFiltersFromColumns = () => {
   const filters = {}
-  
+
   // Map key trong filterColumns sang key API
   const keyMapping = {
     salaryCompositionCode: 'salaryCompositionCode',
@@ -459,7 +459,7 @@ const buildFiltersFromColumns = () => {
     showOnPayslip: 'showOnPayslip',
     salaryCompositionSource: 'source'
   }
-  
+
   Object.keys(filterColumns.value).forEach(key => {
     const col = filterColumns.value[key]
     if (col.checked) {
@@ -480,7 +480,7 @@ const buildFiltersFromColumns = () => {
       }
     }
   })
-  
+
   return Object.keys(filters).length > 0 ? filters : null
 }
 
